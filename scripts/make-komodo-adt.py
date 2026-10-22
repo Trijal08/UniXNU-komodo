@@ -176,9 +176,9 @@ def io(name, compatible, windows, extra=()):
 
 arm_io_children = [
     io('intc', 'arm,gic-v3', [(0x10400000, 0x10000), (0x10440000, 0x100000)], [('redistributor-stride', u64(0x20000))]),
-    # Described, not yet consumed. Driver matching starts when a personality names them. The UART must not be
-    # named uart0: XNU's serial setup drives a node of that name as a PL011, and the Exynos UART is a Samsung UART.
-    io('exynos-uart0', 'google,gs101-uart', [(0x10870000, 0xc0)], [('interrupts', u32(641)), ('status', string('disabled'))]),
+    # Described, not yet consumed. Driver matching starts when a personality names them.     # The kernel's passthrough Samsung UART driver (UniXNU patch native-samsung-uart) finds this node by name and
+    # keeps the firmware's line settings; kernel output then appears on the same UART as the firmware log.
+    io('samsung-uart0', 'google,gs101-uart', [(0x10870000, 0xc0)]),
     io('ufshc', 'google,zuma-ufs', [(0x13200000, 0x200), (0x13201100, 0x2000), (0x13280000, 0x8000), (0x132a0000, 0xa014)],
        [('interrupts', u32(466)), ('status', string('disabled'))]),
     io('ufsphy', 'google,zuma-ufs-phy', [(0x13204000, 0x4000)], [('status', string('disabled'))]),
