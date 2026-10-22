@@ -59,6 +59,23 @@ volatile int native_touch_extent[4]; volatile unsigned int native_touch_hid_repo
 char native_touch_rows[4][120]; volatile int native_touch_strokes[16][7]; volatile int native_touch_xs[12], native_touch_ys[12];
 void native_touch_set_sink(void (*sink)(void *), void *context) { (void)sink; (void)context; }
 ''',
+    'ufs-diag': '''typedef unsigned int u32; typedef unsigned long long u64; typedef unsigned long size_t;
+volatile u64 native_ufs_block_failures, native_ufs_block_reads, native_ufs_verified_blocks, native_ufs_verify_ticks, native_ufs_read_ticks;
+volatile u32 native_ufs_integrity_failures, native_ufs_blocks_published, native_ufs_probe_calls, native_ufs_matched, native_ufs_root_step;
+const char *volatile native_ufs_root_failure;
+u64 native_ufs_export_blocks(void) { return 0; }
+int native_ufs_export_write(u64 a, u32 b, const void *c) { (void)a; (void)b; (void)c; return -1; }
+int native_ufs_log_open(u64 *a, u64 *b, const char **why) { (void)a; (void)b; if (why) *why = "no storage driver"; return -1; }
+int native_ufs_log_sync(void) { return -1; }
+int native_ufs_log_write(u64 a, u32 b, const void *c) { (void)a; (void)b; (void)c; return -1; }
+void native_ufs_progress_text(char *out, size_t size) { if (out && size) out[0] = 0; }
+unsigned native_ufs_store_gpt_check(void) { return 0; }
+unsigned native_ufs_store_mode(void) { return 0; }
+int native_ufs_store_open(u64 blocks, u64 *first, const char **why) { (void)blocks; (void)first; if (why) *why = "no storage driver"; return -1; }
+int native_ufs_store_read(u64 rel, u32 blocks, void *dst) { (void)rel; (void)blocks; (void)dst; return -1; }
+int native_ufs_store_sync(void) { return -1; }
+int native_ufs_store_write(u64 rel, u32 blocks, const void *src) { (void)rel; (void)blocks; (void)src; return -1; }
+''',
     'root-diag': '''volatile int native_owner_root_accepted; volatile unsigned long long native_virtio_verified_blocks;
 unsigned char verified_root_key[1024];
 ''',
