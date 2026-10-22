@@ -72,6 +72,17 @@ Android boot header v4 the Pixel bootloader expects.
 - `scripts/build-sheng-platform-power.py` audits the PMGR vtable against an earlier prelink candidate under `build/native-prelink`; the first kernel build needs that reference bootstrapped.
 - Every script under `scripts/` that mentions Adreno, GMU, Turnip, Metal or Novatek is sheng's GPU and touch tooling and can be deleted once the archive list is proven on a Mac.
 
+## Building on Linux
+
+The kernel builds on Linux with the shim toolchain in `~/Builds/unixnu-linux` (xcrun, make, clang,
+codesign, plutil, install, xcodebuild with the firehose recipe, sw_vers, ditto, brew; cctools ld64;
+a host sysroot; mig, iig-tools, unifdef and lzfse built from source; the iPhoneOS 17.5 and macOS
+14.5 SDKs). Source `~/Builds/unixnu-linux/env.sh` first. The original kernelcache is decoded once
+with lzfse and passed with `--kernelcache`. `configs/bootstrap_defconfig` builds the prelinked
+candidate that `scripts/audit-storage-interface-offline.py` and the PMGR builder audit; copy its
+`kernel.macho` and `kernel.json` into `build/native-prelink` as `native-apfs-load-positive` and
+`native-owner-ufs-rootauth3-candidate` before the full `komodo_defconfig` build.
+
 ## State
 
 | Stage | State |
@@ -79,6 +90,6 @@ Android boot header v4 the Pixel bootloader expects.
 | UEFI firmware, GOP, buttons, UART, UFS | works (Mu-Silicium port) |
 | UniXNU menu and payload | works (2026-10-21): BOOTAA64.EFI from the esp partition, menu and test payload on the panel |
 | DarwinBoot and kernel entry | works (2026-10-21): firmware is at EL2, the override DarwinBoot drops to EL1; a prebuilt uke kernel shows the green, blue and magenta probe bars (hand-off, entry, pre-MMU) and the stage 3 probe resets the phone after the MMU is on |
-| Platform expert | not reached: the prebuilt kernel has no ArmDTPlatform; needs the komodo kernel |
+| Platform expert | not reached: needs the komodo kernel (full configuration building on Linux, 2026-10-22) |
 | Storage and root | no driver |
 | Userland | not reached |
