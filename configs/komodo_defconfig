@@ -10,7 +10,9 @@ CONFIG_XNU_NATIVE_RAM_BLOCK=y
 CONFIG_XNU_TRUST_CACHE_RUNTIME=y
 CONFIG_XNU_SOURCE_MOCKFS=y
 CONFIG_XNU_NATIVE_CS_HASH_CACHE=y
-CONFIG_XNU_VERIFIED_ROOT_PROBE=y
+# The verified-root probe and the verified VirtIO bundle need policies computed over the target OS volume images.
+# They return with the Exynos UFS driver, when there is a root to verify. Until then the plain VirtIO archive links.
+# CONFIG_XNU_VERIFIED_ROOT_PROBE is not set
 CONFIG_XNU_OWNER_ROOT_AUDIT=y
 CONFIG_XNU_OWNER_ROOT_TRUST=y
 CONFIG_XNU_OWNER_CACHE_MOUNT=y
@@ -25,15 +27,13 @@ CONFIG_XNU_NATIVE_PAN=y
 CONFIG_XNU_BOOT_PROGRESS=y
 CONFIG_XNU_NATIVE_LEGACY_DISPLAY=y
 CONFIG_XNU_CRYPTO_BOOTSTRAP="prelinked"
-# Qualcomm only. The Exynos UFS driver and the GPU path get their own switches.
-# CONFIG_XNU_NATIVE_UFS is not set
+# NativeUfs is the Qualcomm driver; it is default-off and matches no komodo node, and the boot progress layer requires it.
+CONFIG_XNU_NATIVE_UFS=y
 # CONFIG_XNU_NATIVE_ADRENO is not set
 # Original-ApplePMGR shim (package/ShengPlatformPower.cpp); board-neutral, required by the target AMFI.
 CONFIG_XNU_SHENG_PMGR=y
 # TODO: the Data seed's volume UUID (sheng: 18AB5557-DC2D-469B-8758-855E60F5B0DF).
 CONFIG_XNU_OWNER_DATA_VOLUME_UUID="00000000-0000-0000-0000-000000000000"
-CONFIG_XNU_NATIVE_VIRTIO_BLOCK_ARCHIVE="{tree}/build/native-virtio-block-verified-bundle/libNativeVirtioBlock.a"
-CONFIG_XNU_VERIFIED_ROOT_ARCHIVE="{tree}/build/verified-root-os-xnu-bundle/libVerifiedRootProbe.a"
 CONFIG_XNU_EXTRA_LD_ARCHIVES="{tree}/build/komodo-linkstubs/libkomodo-linkstubs.a"
 CONFIG_XNU_NATIVE_MOBILE_DISPLAY=n
 CONFIG_XNU_ARMVIRT_PLATFORM=n
