@@ -176,9 +176,14 @@ def io(name, compatible, windows, extra=()):
 
 arm_io_children = [
     io('intc', 'arm,gic-v3', [(0x10400000, 0x10000), (0x10440000, 0x100000)], [('redistributor-stride', u64(0x20000))]),
-    # Described, not yet consumed. Driver matching starts when a personality names them.     # The kernel's passthrough Samsung UART driver (UniXNU patch native-samsung-uart) finds this node by name and
-    # keeps the firmware's line settings; kernel output then appears on the same UART as the firmware log.
-    io('samsung-uart0', 'google,gs101-uart', [(0x10870000, 0xc0)]),
+    # Described, not yet consumed. Driver matching starts when a personality names them.
+    # The kernel's Apple UART driver (pexpert apple_uart, enabled for this kernel by the native-samsung-uart patch)
+    # binds the boot console the way iBoot's tree does: node uart0, compatible uart-1,samsung. It reprograms the line
+    # to 8N1 at 115200 and takes the divisor from 'ubrdiv'; 0x6b is what the firmware left (200 MHz source, sampling 16,
+    # UFRACVAL 0x8 untouched), observed on 2026-10-22 with the passthrough driver.
+    # exynos-fifo-status: this UART revision reports its FIFO levels with 8-bit counts (tx full is bit 24); the Apple
+    # SoC layout the driver assumes (tx full bit 9) would let it overrun the transmit FIFO and drop characters.
+    io('uart0', 'uart-1,samsung', [(0x10870000, 0xc0)], [('ubrdiv', u32(0x6b)), ('exynos-fifo-status', u32(1))]),
     # No 'interrupts' properties: the registry builder maps interrupts through interrupt-parent phandles the ADT
     # does not carry; the drivers take their INTIDs from board constants.
     io('ufshc', 'google,zuma-ufs', [(0x13200000, 0x200), (0x13201100, 0x2000), (0x13280000, 0x8000), (0x132a0000, 0xa014)],
