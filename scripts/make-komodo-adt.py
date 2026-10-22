@@ -179,11 +179,13 @@ arm_io_children = [
     # Described, not yet consumed. Driver matching starts when a personality names them.     # The kernel's passthrough Samsung UART driver (UniXNU patch native-samsung-uart) finds this node by name and
     # keeps the firmware's line settings; kernel output then appears on the same UART as the firmware log.
     io('samsung-uart0', 'google,gs101-uart', [(0x10870000, 0xc0)]),
+    # No 'interrupts' properties: the registry builder maps interrupts through interrupt-parent phandles the ADT
+    # does not carry; the drivers take their INTIDs from board constants.
     io('ufshc', 'google,zuma-ufs', [(0x13200000, 0x200), (0x13201100, 0x2000), (0x13280000, 0x8000), (0x132a0000, 0xa014)],
-       [('interrupts', u32(466)), ('status', string('disabled'))]),
+       [('status', string('disabled'))]),
     io('ufsphy', 'google,zuma-ufs-phy', [(0x13204000, 0x4000)], [('status', string('disabled'))]),
     io('usi2', 'google,zuma-usi', [(0x108900c0, 0x20)], [('status', string('disabled'))]),
-    io('spi2', 'google,zuma-spi', [(0x10890000, 0x30)], [('interrupts', u32(643)), ('status', string('disabled'))]),
+    io('spi2', 'google,zuma-spi', [(0x10890000, 0x30)], [('status', string('disabled'))]),
     io('decon0', 'google,zuma-decon', [(0x19470000, 0x6000), (0x19480000, 0xe000), (0x19490000, 0x10000), (0x194a0000, 0xe000)],
        [('status', string('disabled'))]),
     io('dsim0', 'google,zuma-dsim', [(0x19440000, 0x300), (0x19460100, 0x700), (0x19460000, 0x100)], [('status', string('disabled'))]),
