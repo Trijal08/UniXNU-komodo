@@ -183,8 +183,8 @@ kernel_args = [
   "offline-mobile-graphics-client=1",
   "offline-mobile-graphics-load=1",
   "offline-apfs-load=1",
-  # boot-progress=2 returns once NativeLegacyDisplay binds a framebuffer: the pe_kprintf hook sends every
-  # kprintf line to the boot-progress sink, which hides the IOKit match trace from the UART until then.
+  # boot-progress=2: kernel console and stage names on the panel; the UniXNU hooks mirror them, the UART keeps every byte.
+  "boot-progress=2",
   "-apfs_shared_datavolume",
   "offline-key-events=1",
   "sheng-pmgr=2",
