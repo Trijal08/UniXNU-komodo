@@ -1,0 +1,40 @@
+# Stage 5 kernel: platform expert, CPU, display, HID and the inert drivers, without the owner-root chain.
+# The verified-root probe needs the signed policies over the target OS volume images, the owner-root
+# flags form a chain on it, and boot progress sits on top of that chain; none of it runs before a root
+# exists. komodo_defconfig is the full target once the Exynos UFS driver and the policies exist.
+# Kernel configuration for komodo. Derived from sheng_defconfig with the Qualcomm drivers off.
+CONFIG_XNU_BUILD_ARCHIVES=y
+CONFIG_XNU_SOURCE_CORECRYPTO14=y
+CONFIG_XNU_SOURCE_PTHREAD=y
+CONFIG_XNU_ARM_DT_PLATFORM=y
+CONFIG_XNU_ARMCPU=y
+CONFIG_XNU_NATIVE_AES=y
+CONFIG_XNU_NATIVE_VIRTIO_BLOCK=y
+CONFIG_XNU_NATIVE_RAM_BLOCK=y
+CONFIG_XNU_TRUST_CACHE_RUNTIME=y
+CONFIG_XNU_SOURCE_MOCKFS=y
+CONFIG_XNU_NATIVE_CS_HASH_CACHE=y
+# CONFIG_XNU_OWNER_ROOT_AUDIT is not set
+# CONFIG_XNU_OWNER_ROOT_TRUST is not set
+# CONFIG_XNU_OWNER_CACHE_MOUNT is not set
+# CONFIG_XNU_OWNER_CACHE_STARTUP is not set
+# CONFIG_XNU_OWNER_BOOT_MANIFEST is not set
+# CONFIG_XNU_OWNER_DATA_MOUNT is not set
+# CONFIG_XNU_OWNER_UNION_SYSTEMOS is not set
+CONFIG_XNU_DT_PANIC_REGION=y
+CONFIG_XNU_ZONE_PGZ_ALIGNMENT_PROBE=y
+CONFIG_XNU_NATIVE_ARCH_TIMER=y
+CONFIG_XNU_NATIVE_PAN=y
+# CONFIG_XNU_BOOT_PROGRESS is not set
+CONFIG_XNU_NATIVE_LEGACY_DISPLAY=y
+CONFIG_XNU_CRYPTO_BOOTSTRAP="prelinked"
+# NativeUfs is the Qualcomm driver; it is default-off and matches no komodo node, and the boot progress layer requires it.
+CONFIG_XNU_NATIVE_UFS=y
+# CONFIG_XNU_NATIVE_ADRENO is not set
+# Original-ApplePMGR shim (package/ShengPlatformPower.cpp); board-neutral, required by the target AMFI.
+CONFIG_XNU_SHENG_PMGR=y
+# TODO: the Data seed's volume UUID (sheng: 18AB5557-DC2D-469B-8758-855E60F5B0DF).
+CONFIG_XNU_OWNER_DATA_VOLUME_UUID="00000000-0000-0000-0000-000000000000"
+CONFIG_XNU_EXTRA_LD_ARCHIVES="{tree}/build/komodo-linkstubs/libkomodo-linkstubs.a"
+CONFIG_XNU_NATIVE_MOBILE_DISPLAY=n
+CONFIG_XNU_ARMVIRT_PLATFORM=n
