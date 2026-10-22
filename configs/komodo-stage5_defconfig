@@ -35,6 +35,8 @@ CONFIG_XNU_NATIVE_UFS=y
 CONFIG_XNU_SHENG_PMGR=y
 # TODO: the Data seed's volume UUID (sheng: 18AB5557-DC2D-469B-8758-855E60F5B0DF).
 CONFIG_XNU_OWNER_DATA_VOLUME_UUID="00000000-0000-0000-0000-000000000000"
-CONFIG_XNU_EXTRA_LD_ARCHIVES="{tree}/build/komodo-linkstubs/libkomodo-linkstubs.a"
+# The legacy display bundle references the boot progress layer; without the owner-root chain that layer is linked as a
+# plain archive here (archive 14 builds it), so its functions resolve while the kernel-side hooks stay compiled out.
+CONFIG_XNU_EXTRA_LD_ARCHIVES="{tree}/build/komodo-linkstubs/libkomodo-linkstubs.a {tree}/build/boot-progress/libBootProgress.a"
 CONFIG_XNU_NATIVE_MOBILE_DISPLAY=n
 CONFIG_XNU_ARMVIRT_PLATFORM=n
