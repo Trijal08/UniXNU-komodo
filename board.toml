@@ -169,6 +169,8 @@ kernel_args = [
   "-v",
   "serial=3",
   "debug=0x14e",
+  # DEVELOPMENT kernels drop every kprintf unless asked; the IOKit match trace (io=) and the panic path use kprintf.
+  "-enable_kprintf_spam",
   "kt_fixed_zones=120",
   "offline-legacy-register=1",
   "offline-legacy-gop=1",
