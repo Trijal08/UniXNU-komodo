@@ -1,0 +1,3 @@
+# Sources of this device repository, in addition to the feeds.toml of UniXNU.
+# The Exynos UFS driver, the USI SPI driver and the Synaptics touch probe will be listed here
+# once they have repositories of their own.

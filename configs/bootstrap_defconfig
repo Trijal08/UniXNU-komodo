@@ -1,0 +1,7 @@
+# Bootstrap candidate: the first-console configuration (no archive builders), prelinked against the
+# original kernelcache. Its kernel.macho is copied into build/native-prelink as the candidate the
+# storage, PMGR and display builders audit before the full komodo_defconfig build.
+CONFIG_XNU_CRYPTO_BOOTSTRAP="prelinked"
+CONFIG_XNU_NATIVE_MOBILE_DISPLAY=n
+CONFIG_XNU_ARMVIRT_PLATFORM=n
+CONFIG_XNU_EXTRA_LD_ARCHIVES="{tree}/build/komodo-linkstubs/libkomodo-linkstubs.a"
