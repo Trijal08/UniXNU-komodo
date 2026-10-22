@@ -90,6 +90,6 @@ candidate that `scripts/audit-storage-interface-offline.py` and the PMGR builder
 | UEFI firmware, GOP, buttons, UART, UFS | works (Mu-Silicium port) |
 | UniXNU menu and payload | works (2026-10-21): BOOTAA64.EFI from the esp partition, menu and test payload on the panel |
 | DarwinBoot and kernel entry | works (2026-10-21): firmware is at EL2, the override DarwinBoot drops to EL1; a prebuilt uke kernel shows the green, blue and magenta probe bars (hand-off, entry, pre-MMU) and the stage 3 probe resets the phone after the MMU is on |
-| Platform expert | not reached: needs the komodo kernel (full configuration building on Linux, 2026-10-22) |
+| Platform expert | stage 5 kernel built on Linux 2026-10-22 (komodo-stage5_defconfig); first boot pending |
 | Storage and root | no driver |
 | Userland | not reached |
