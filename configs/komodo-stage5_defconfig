@@ -1,4 +1,4 @@
-# Stage 5 kernel: platform expert, CPU, display, HID and the inert drivers, without the owner-root chain.
+# Stage 5 kernel (superseded by komodo-stage6_defconfig; needs NativeUfs --unverified in board.toml): platform expert, CPU, display, HID and the inert drivers, without the owner-root chain.
 # The verified-root probe needs the signed policies over the target OS volume images, the owner-root
 # flags form a chain on it, and boot progress sits on top of that chain; none of it runs before a root
 # exists. komodo_defconfig is the full target once the Exynos UFS driver and the policies exist.

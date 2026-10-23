@@ -30,6 +30,8 @@ fetch = ["KernelCache", "DeviceTree", "StaticTrustCache", "Cryptex1,SystemTrustC
 # (sda35, LBA 0x5696200) carries the payload volume. The Exynos UFS driver must look for "darwin"
 # where NativeUfs looks for "userdata", and the flash target is `fastboot flash darwin`.
 [userdata]
+# The GPT partition that carries the root image (sheng: userdata; komodo: the darwin partition carved from linux).
+partition = "darwin"
 first_lba = 0x6715300
 last_lba = 0x77152ff
 lba_bytes = 4096
@@ -51,18 +53,26 @@ archives = [
   "build-arm-driver.py ArmCpu",
   "build-arm-driver.py NativeAES",
   "build-native-aes-bindings.py",
-  # The Tensor host glue, the darwin GPT partition for the root image, and no owner-verified block
-  # layer yet (the verified-root kit and policies come with the full komodo_defconfig).
-  "build-arm-driver.py NativeUfs --host exynos --root-partition darwin --unverified",
-  "build-arm-driver.py NativeVirtioBlock",
+  # The owner-signed policies over the OS and SystemOS windows of the root image (`unixnu build policies`),
+  # as the archive the kernel links with CONFIG_XNU_VERIFIED_ROOT_PROBE and the verified NativeUfs reads.
+  "build-verified-root-probe.py --component os --include-systemos",
+  # The Tensor host glue, the darwin GPT partition for the root image, owner-verified reads (add
+  # --unverified for a probe-only driver without the policies).
+  "build-arm-driver.py NativeUfs --host exynos --root-partition darwin",
+  # The verified VirtIO block layer with the two-volume policy bundle: it also answers the owner-root kernel's
+  # root/volume/manifest queries (native_verified_block_*), so it is the archive the kernel links
+  # (CONFIG_XNU_NATIVE_VIRTIO_BLOCK_ARCHIVE) even though komodo has no VirtIO transport.
+  "build-arm-driver.py NativeVirtioBlock --verified-root --verified-root-bundle",
   "build-arm-driver.py NativeRamBlock",
   "build-native-virtio-bindings.py --component NativeRamBlock --directory build/native-ram-block",
-  "build-native-virtio-bindings.py --component NativeVirtioBlock",
+  "build-native-virtio-bindings.py --component NativeVirtioBlock --directory build/native-virtio-block-verified-bundle",
   "build-mockfs-fixture.py",
   "build-sheng-platform-power.py",
   "build-boot-progress.py",
   "build-libpthread-kernel.py",
   "build-native-legacy-display.py",
+  # Link stubs for the diagnostics of drivers komodo does not link (CONFIG_XNU_EXTRA_LD_ARCHIVES).
+  "build-komodo-linkstubs.py",
 ]
 
 [kernel.prelink]
@@ -165,12 +175,14 @@ trust_cache_sha256 = [
 timeout = 3
 
 # The sheng argument set minus its GPU, touch, cpufreq and UFS-persistence switches. Add
-# "native-ufs-root=1" and "sheng-data-persist=2" with the Exynos UFS driver. "sheng-pmgr=2" publishes
-# the original PMGR nub the target AMFI needs. The text-fixup is for the shared IPSW's dyld cache.
+# "sheng-data-persist=2" once a Data seed exists. "native-ufs-root=1" publishes the darwin partition
+# through the owner-verified NativeUfs; "sheng-pmgr=2" publishes the original PMGR nub the target
+# AMFI needs. The text-fixup is for the shared IPSW's dyld cache.
 kernel_args = [
   "-v",
   "serial=3",
   "debug=0x14e",
+  "native-ufs-root=1",
   # -enable_kprintf_spam (pass it with --kernel-arg when tracing): a DEVELOPMENT kernel drops every kprintf without it,
   # and with it every kprintf in the kernel goes out over the polled UART, which slows the whole boot several-fold.
   "kt_fixed_zones=120",
