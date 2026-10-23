@@ -63,10 +63,10 @@ while index < len(arguments):
         index += 1
     elif value == '-Xclang' and arguments[index + 1].startswith('-W'):
         index += 1
-    elif not value.startswith('-W'):
+    elif value.startswith('-Wno-') or not value.startswith('-W'):
         command.append(value)
     index += 1
-command.extend(['-Wall', '-Wextra', '-Werror', '-Wno-unused-parameter',
+command.extend(['-Wall', '-Wextra', '-Werror', *[a for a in arguments if a.startswith('-Wno-')], '-Wno-unknown-warning-option', '-Wno-unused-parameter',
                 '-Wno-c99-designator', '-Wno-reorder-init-list', '-Wno-deprecated-enum-enum-conversion',
                 '-Wno-unnecessary-virtual-specifier', '-I', str(ROOT / '.cache/xnu-work/osfmk')])
 if component in ('NativeVirtioBlock', 'NativeRamBlock', 'NativeUfs'):

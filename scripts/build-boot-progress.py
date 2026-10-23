@@ -30,7 +30,7 @@ while i < len(args):
     elif not arg.startswith(('-W', '-DXNU_BOOT_PROGRESS=')):
         command.append(arg)
     i += 1
-command += ['-DXNU_BOOT_PROGRESS=1', '-mgeneral-regs-only', '-Wall', '-Wextra', '-Werror',
+command += ['-DXNU_BOOT_PROGRESS=1', '-mgeneral-regs-only', '-Wall', '-Wextra', '-Werror', *[a for a in args if a.startswith('-Wno-')], '-Wno-unknown-warning-option',
             '-I', str(ROOT / '.cache/xnu-work/osfmk'),
             '-I', str(Path(os.environ.get('UNIXNU_UEFI') or ROOT / 'uefi-komodo') / 'Silicon/Silicium/SiliciumPkg/Library/FrameBufferSerialPortLib')]
 subprocess.run(command, cwd=record['directory'], check=True, timeout=90)
@@ -54,10 +54,10 @@ while j < len(policy_args):
         j += 1
     elif arg == '-Xclang' and policy_args[j+1].startswith('-W'):
         j += 1
-    elif not arg.startswith('-W'):
+    elif arg.startswith('-Wno-') or not arg.startswith('-W'):
         policy_command.append(arg)
     j += 1
-policy_command += ['-mgeneral-regs-only', '-Wall', '-Wextra', '-Werror']
+policy_command += ['-mgeneral-regs-only', '-Wall', '-Wextra', '-Werror', *[a for a in policy_args if a.startswith('-Wno-')], '-Wno-unknown-warning-option']
 subprocess.run(policy_command, cwd=policy_record['directory'], check=True, timeout=90)
 
 archive = OUT / 'libBootProgress.a'

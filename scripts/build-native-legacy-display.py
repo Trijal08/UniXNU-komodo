@@ -195,9 +195,9 @@ while i<len(args):
     if value==r['file']:cmd.append(str(source))
     elif value=='-o':cmd+=['-o',str(OUT/'LegacyDisplayProbe.o')];i+=1
     elif value=='-Xclang' and args[i+1].startswith('-W'):i+=1
-    elif not value.startswith('-W'):cmd.append(value)
+    elif value.startswith('-Wno-') or not value.startswith('-W'):cmd.append(value)
     i+=1
-cmd+=['-Wall','-Wextra','-Werror','-Wno-unused-parameter','-Wno-unnecessary-virtual-specifier','-Wno-c99-designator','-Wno-reorder-init-list',
+cmd+=['-Wall','-Wextra','-Werror', *[a for a in args if a.startswith('-Wno-')], '-Wno-unknown-warning-option','-Wno-unused-parameter','-Wno-unnecessary-virtual-specifier','-Wno-c99-designator','-Wno-reorder-init-list',
       '-Wno-deprecated-enum-enum-conversion','-I',str(ROOT/'.cache/xnu-work/osfmk')]
 run(cmd,cwd=r['directory'])
 hid_source=ROOT/'kits/komodo/HidInputProbe.cpp'
@@ -219,9 +219,9 @@ while j<len(pa):
         if value=='-o':process_cmd+=['-o',str(process_obj)]
         j+=1
     elif value=='-Xclang' and pa[j+1].startswith('-W'):j+=1
-    elif not value.startswith('-W'):process_cmd.append(value)
+    elif value.startswith('-Wno-') or not value.startswith('-W'):process_cmd.append(value)
     j+=1
-process_cmd+=['-Wall','-Wextra','-Werror','-mgeneral-regs-only','-I',str(ROOT/'.cache/xnu-work/osfmk')]
+process_cmd+=['-Wall','-Wextra','-Werror', *[a for a in pa if a.startswith('-Wno-')], '-Wno-unknown-warning-option','-mgeneral-regs-only','-I',str(ROOT/'.cache/xnu-work/osfmk')]
 run(process_cmd,cwd=pr['directory'])
 trace_source=ROOT/'kits/komodo/BootUiTraceProbe.c'
 trace_obj=OUT/'BootUiTraceProbe.o'
