@@ -13,6 +13,9 @@ parser.add_argument('--negative-aes-kat', action='store_true', help='Isolated ow
 parser.add_argument('--verified-root', action='store_true', help='Authenticate all actual disk reads against an independently signed immutable policy')
 parser.add_argument('--verified-root-bundle', action='store_true', help='Select exactly one capacity-matching policy per device, then independently authenticate it')
 parser.add_argument('--negative-verified-block', action='store_true', help='Negative own-buffer control: corrupt only the completed DMA snapshot')
+parser.add_argument('--host', choices=['qcom', 'exynos'], default='qcom', help='NativeUfs host glue: the SM8550 path (default) or the Tensor path')
+parser.add_argument('--root-partition', metavar='NAME', help='NativeUfs: GPT partition name of the root image (default per host glue)')
+parser.add_argument('--unverified', action='store_true', help='NativeUfs: build without the owner-verified block layer (probe modes only; root publication refuses)')
 args = parser.parse_args()
 if args.verified_root_bundle and not args.verified_root:
     parser.error('A policy bundle requires verified block mode')
@@ -75,8 +78,13 @@ if component in ('NativeVirtioBlock', 'NativeRamBlock', 'NativeUfs'):
     if args.verified_root_bundle:
         command += ['-DNATIVE_VERIFIED_BLOCK_MULTI_POLICY=1']
 if component == 'NativeUfs':
-    command += ['-I', str(ROOT / 'kits/VerifiedRoot/include'), '-I', str(ROOT / 'drivers/NativeVirtioBlock'),
-                '-DNATIVE_VERIFIED_BLOCK=1', '-DNATIVE_VERIFIED_BLOCK_MULTI_POLICY=1', '-mgeneral-regs-only']
+    command += ['-I', str(ROOT / 'kits/VerifiedRoot/include'), '-I', str(ROOT / 'drivers/NativeVirtioBlock'), '-mgeneral-regs-only']
+    if not args.unverified:
+        command += ['-DNATIVE_VERIFIED_BLOCK=1', '-DNATIVE_VERIFIED_BLOCK_MULTI_POLICY=1']
+    if args.host == 'exynos':
+        command += ['-DNATIVE_UFS_HOST_EXYNOS=1']
+    if args.root_partition:
+        command += ['-DNATIVE_UFS_ROOT_PARTITION="%s"' % args.root_partition]
 if component=='NativeOfflineGPU':
     command += ['-I',str(ROOT/'drivers/NativeVirtioConsole')]
 if component in ('NativeLegacyDisplay','NativeHidInput'):

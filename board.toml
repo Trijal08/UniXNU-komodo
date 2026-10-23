@@ -51,7 +51,9 @@ archives = [
   "build-arm-driver.py ArmCpu",
   "build-arm-driver.py NativeAES",
   "build-native-aes-bindings.py",
-  "build-arm-driver.py NativeUfs",
+  # The Tensor host glue, the darwin GPT partition for the root image, and no owner-verified block
+  # layer yet (the verified-root kit and policies come with the full komodo_defconfig).
+  "build-arm-driver.py NativeUfs --host exynos --root-partition darwin --unverified",
   "build-arm-driver.py NativeVirtioBlock",
   "build-arm-driver.py NativeRamBlock",
   "build-native-virtio-bindings.py --component NativeRamBlock --directory build/native-ram-block",

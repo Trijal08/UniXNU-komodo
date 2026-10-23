@@ -29,7 +29,8 @@ CONFIG_XNU_NATIVE_PAN=y
 CONFIG_XNU_NATIVE_LEGACY_DISPLAY=y
 CONFIG_XNU_CRYPTO_BOOTSTRAP="prelinked"
 # NativeUfs is the Qualcomm driver; it is default-off and matches no komodo node, and the boot progress layer requires it.
-# CONFIG_XNU_NATIVE_UFS is not set (it needs the verified-root kit; boot progress, which required it, is off here)
+# NativeUfs with the Tensor host glue, unverified: probe modes only until the verified-root kit is in.
+CONFIG_XNU_NATIVE_UFS=y
 # CONFIG_XNU_NATIVE_ADRENO is not set
 # Original-ApplePMGR shim (package/ShengPlatformPower.cpp); board-neutral, required by the target AMFI.
 CONFIG_XNU_SHENG_PMGR=y
