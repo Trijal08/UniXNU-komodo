@@ -171,8 +171,8 @@ kernel_args = [
   "-v",
   "serial=3",
   "debug=0x14e",
-  # DEVELOPMENT kernels drop every kprintf unless asked; the IOKit match trace (io=) and the panic path use kprintf.
-  "-enable_kprintf_spam",
+  # -enable_kprintf_spam (pass it with --kernel-arg when tracing): a DEVELOPMENT kernel drops every kprintf without it,
+  # and with it every kprintf in the kernel goes out over the polled UART, which slows the whole boot several-fold.
   "kt_fixed_zones=120",
   "offline-legacy-register=1",
   "offline-legacy-gop=1",

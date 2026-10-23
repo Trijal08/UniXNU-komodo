@@ -25,7 +25,7 @@ CONFIG_XNU_DT_PANIC_REGION=y
 CONFIG_XNU_ZONE_PGZ_ALIGNMENT_PROBE=y
 CONFIG_XNU_NATIVE_ARCH_TIMER=y
 CONFIG_XNU_NATIVE_PAN=y
-# CONFIG_XNU_BOOT_PROGRESS is not set
+CONFIG_XNU_BOOT_PROGRESS=y
 CONFIG_XNU_NATIVE_LEGACY_DISPLAY=y
 CONFIG_XNU_CRYPTO_BOOTSTRAP="prelinked"
 # NativeUfs is the Qualcomm driver; it is default-off and matches no komodo node, and the boot progress layer requires it.
@@ -38,6 +38,6 @@ CONFIG_XNU_SHENG_PMGR=y
 CONFIG_XNU_OWNER_DATA_VOLUME_UUID="00000000-0000-0000-0000-000000000000"
 # The legacy display bundle references the boot progress layer; without the owner-root chain that layer is linked as a
 # plain archive here (archive 14 builds it), so its functions resolve while the kernel-side hooks stay compiled out.
-CONFIG_XNU_EXTRA_LD_ARCHIVES="{tree}/build/komodo-linkstubs/libkomodo-linkstubs.a {tree}/build/boot-progress/libBootProgress.a"
+CONFIG_XNU_EXTRA_LD_ARCHIVES="{tree}/build/komodo-linkstubs/libkomodo-linkstubs.a"
 CONFIG_XNU_NATIVE_MOBILE_DISPLAY=n
 CONFIG_XNU_ARMVIRT_PLATFORM=n

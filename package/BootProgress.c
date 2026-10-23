@@ -523,11 +523,14 @@ void boot_progress_init(void) {
   if (!boot_progress_frequency) return;
   boot_progress_epoch=ticks(); state.limit=120; state.stall=30;
   state.continuous=opt==2; enabled=opt;
+  kprintf("boot-progress: enabled=%u cntfrq=%llu\n",enabled,(unsigned long long)boot_progress_frequency);
   PE_parse_boot_argn("sheng-build-tag",build_tag,sizeof(build_tag));build_tag[sizeof(build_tag)-1]=0;
   if (PE_parse_boot_argn("boot-diag-resume",&resume_after,sizeof(resume_after)) && (resume_after<5 || resume_after>3600)) resume_after=0;
   boot_progress_stage("PE initialized; early native mappings");
 }
 void boot_progress_bind(uintptr_t base,unsigned w,unsigned h,unsigned rb,unsigned depth) {
+  kprintf("boot-progress: bind request base=0x%llx %ux%u row=%u depth=%u enabled=%u owned=%u\n",
+    (unsigned long long)base,w,h,rb,depth,enabled,(unsigned)boot_progress_display_owned);
   if (!enabled || !take()) return;
   ++bind_count;bind_base=base;bind_depth=depth;bind_result=1;
   if (boot_progress_display_owned) { bind_result=2;release(); return; }
@@ -548,6 +551,8 @@ void boot_progress_bind(uintptr_t base,unsigned w,unsigned h,unsigned rb,unsigne
     draw(seconds());
   }
   release();
+  kprintf("boot-progress: bind base=0x%llx %ux%u row=%u depth=%u -> %u (0 bound, 1 rejected, 2 display owned)\n",
+    (unsigned long long)base,w,h,rb,depth,bind_result);
 }
 void boot_progress_putc(char c) {
   if (!enabled || !take()) return;
