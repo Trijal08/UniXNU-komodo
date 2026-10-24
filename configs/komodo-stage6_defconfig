@@ -1,7 +1,7 @@
 # Stage 6 kernel: stage 5 plus the owner-root chain over the darwin partition. The verified-root probe links
 # the owner-signed policies of the OS and SystemOS windows (`unixnu build userdata`, then `unixnu build policies`),
 # NativeUfs serves only reads that verify against them, and the kernel roots on the signed OS volume. The Data
-# mount stays off until a Data seed exists (komodo_defconfig is the full target).
+# mount takes the seed of scripts/build-data-seed.py (komodo_defconfig is the full target).
 CONFIG_XNU_BUILD_ARCHIVES=y
 CONFIG_XNU_SOURCE_CORECRYPTO14=y
 CONFIG_XNU_SOURCE_PTHREAD=y
@@ -23,7 +23,7 @@ CONFIG_XNU_OWNER_ROOT_TRUST=y
 CONFIG_XNU_OWNER_CACHE_MOUNT=y
 CONFIG_XNU_OWNER_CACHE_STARTUP=y
 CONFIG_XNU_OWNER_BOOT_MANIFEST=y
-# CONFIG_XNU_OWNER_DATA_MOUNT is not set
+CONFIG_XNU_OWNER_DATA_MOUNT=y
 CONFIG_XNU_OWNER_UNION_SYSTEMOS=y
 CONFIG_XNU_DT_PANIC_REGION=y
 CONFIG_XNU_ZONE_PGZ_ALIGNMENT_PROBE=y
@@ -37,8 +37,8 @@ CONFIG_XNU_NATIVE_UFS=y
 # CONFIG_XNU_NATIVE_ADRENO is not set
 # Original-ApplePMGR shim (package/ShengPlatformPower.cpp); board-neutral, required by the target AMFI.
 CONFIG_XNU_SHENG_PMGR=y
-# TODO: the Data seed's volume UUID (sheng: 18AB5557-DC2D-469B-8758-855E60F5B0DF).
-CONFIG_XNU_OWNER_DATA_VOLUME_UUID="00000000-0000-0000-0000-000000000000"
+# The Data seed's volume UUID (scripts/build-data-seed.py --volume-uuid; sheng used 18AB5557-DC2D-469B-8758-855E60F5B0DF).
+CONFIG_XNU_OWNER_DATA_VOLUME_UUID="EFC488D9-64E3-49A8-BD93-74BB04D5C0F4"
 # Link stubs for the diagnostics of drivers komodo does not link (scripts/build-komodo-linkstubs.py, one member per
 # symbol, so a real definition always wins).
 CONFIG_XNU_EXTRA_LD_ARCHIVES="{tree}/build/komodo-linkstubs/libkomodo-linkstubs.a"

@@ -174,15 +174,16 @@ trust_cache_sha256 = [
 ]
 timeout = 3
 
-# The sheng argument set minus its GPU, touch, cpufreq and UFS-persistence switches. Add
-# "sheng-data-persist=2" once a Data seed exists. "native-ufs-root=1" publishes the darwin partition
-# through the owner-verified NativeUfs; "sheng-pmgr=2" publishes the original PMGR nub the target
-# AMFI needs. The text-fixup is for the shared IPSW's dyld cache.
+# The sheng argument set minus its GPU, touch and cpufreq switches. "native-ufs-root=1" publishes the
+# darwin partition through the owner-verified NativeUfs, "sheng-data-persist=2" writes the Data volume
+# through to the store at the end of that partition (below the 1024 MiB log reserve), and "sheng-pmgr=2"
+# publishes the original PMGR nub the target AMFI needs. The text-fixup is for the shared IPSW's dyld cache.
 kernel_args = [
   "-v",
   "serial=3",
   "debug=0x14e",
   "native-ufs-root=1",
+  "sheng-data-persist=2",
   # -enable_kprintf_spam (pass it with --kernel-arg when tracing): a DEVELOPMENT kernel drops every kprintf without it,
   # and with it every kprintf in the kernel goes out over the polled UART, which slows the whole boot several-fold.
   "kt_fixed_zones=120",
