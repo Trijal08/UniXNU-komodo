@@ -210,7 +210,11 @@ kernel_args = [
   "sheng-disable-jobs=com.apple.identityservicesd,com.apple.locationd,com.apple.CommCenter,com.apple.bluetoothd",
   "boot-ui-focus3=Preferences",
   "boot-ui-focus4=SpringBoard",
-  # sheng-smp=1 and armcpu-spi-ipi=1 return once ArmCpu drops PSCI-started secondaries from EL2 to EL1.
+  # Secondary cores: ArmCpu starts them with PSCI CPU_ON through its EL2 trampoline (the firmware starts them at
+  # EL2). IPIs are plain SGIs here (no hypervisor traps them, unlike sheng's armcpu-spi-ipi=1); the self-IPI lets
+  # XNU clear SIGPdisabled on each new core.
+  "sheng-smp=1",
+  "armcpu-self-ipi=1",
   "sheng-aks=1",
   "sheng-banner=0",
   "-no_slto_panic",
