@@ -51,8 +51,8 @@ archives = [
   "build-corecrypto-14.py --namespace",
   "build-arm-driver.py ArmDTPlatform",
   "build-arm-driver.py ArmCpu",
-  "build-arm-driver.py NativeAES",
-  "build-native-aes-bindings.py",
+  "build-arm-driver.py SoftwareAES",
+  "build-software-aes-bindings.py",
   # The owner-signed policies over the OS and SystemOS windows of the root image (`unixnu build policies`),
   # as the archive the kernel links with CONFIG_XNU_VERIFIED_ROOT_PROBE and the verified NativeUfs reads.
   "build-verified-root-probe.py --component os --include-systemos",
@@ -62,21 +62,21 @@ archives = [
   # The verified VirtIO block layer with the two-volume policy bundle: it also answers the owner-root kernel's
   # root/volume/manifest queries (native_verified_block_*), so it is the archive the kernel links
   # (CONFIG_XNU_NATIVE_VIRTIO_BLOCK_ARCHIVE) even though komodo has no VirtIO transport.
-  "build-arm-driver.py NativeVirtioBlock --verified-root --verified-root-bundle",
-  "build-arm-driver.py NativeRamBlock",
-  "build-native-virtio-bindings.py --component NativeRamBlock --directory build/native-ram-block",
-  "build-native-virtio-bindings.py --component NativeVirtioBlock --directory build/native-virtio-block-verified-bundle",
+  "build-arm-driver.py VirtioMmioBlock --verified-root --verified-root-bundle",
+  "build-arm-driver.py RamBlock",
+  "build-virtio-mmio-bindings.py --component RamBlock --directory build/native-ram-block",
+  "build-virtio-mmio-bindings.py --component VirtioMmioBlock --directory build/native-virtio-block-verified-bundle",
   "build-mockfs-fixture.py",
   "build-sheng-platform-power.py",
   "build-boot-progress.py",
   "build-libpthread-kernel.py",
-  "build-native-legacy-display.py",
+  "build-gop-legacy-display.py",
   # Link stubs for the diagnostics of drivers komodo does not link (CONFIG_XNU_EXTRA_LD_ARCHIVES).
   "build-komodo-linkstubs.py",
 ]
 
 [kernel.prelink]
-tool = "kits/NativePrelink/emit_prelink.py"
+tool = "kits/XnuPrelink/emit_prelink.py"
 kernel = "build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/mach.development.bcm2837.unstripped.noctf"
 kernelcache_sha256 = "f18b4df865405f2a287b84977d7aca745e056d656d9fc9df1662970ce2969de7"
 slide = "-0x1000000"
