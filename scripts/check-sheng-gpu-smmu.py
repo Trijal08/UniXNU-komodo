@@ -2,7 +2,7 @@
 """Offline board SMMU lifecycle: real production code, software register peers."""
 import hashlib,importlib.util,json,re,struct,subprocess
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1];kit=ROOT/'kits/ArmSmmu4K';board=ROOT/'kits/sheng'
+ROOT=Path(__file__).resolve().parents[1];kit=ROOT/'kits/ArmSmmu4K';board=ROOT/'kits/komodo'
 out=ROOT/'build/sheng-gpu-smmu';out.mkdir(exist_ok=True);(out/'report.json').unlink(missing_ok=True)
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 spec=importlib.util.spec_from_file_location('prepare',ROOT/'scripts/prepare-sheng-gpu-smmu.py')

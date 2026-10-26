@@ -49,7 +49,7 @@ require(n==3 and on==2 and [trust[a:b] for a,b in zip(starts[1:],(*starts[2:],le
 plan=json.loads((ROOT/'build/xnu-prelink/native-owner-console-bounds-candidate.json').read_text())
 require(sha(ROOT/'build/xnu-prelink/native-owner-console-bounds-candidate.macho')==plan['candidate_sha256'],'Exact native-4K candidate')
 host_build=json.loads((ROOT/'build/host-metal/qualification.json').read_text())
-require(host_build['source_sha256']==sha(ROOT/'kits/sheng/HostMetalDiagnostic.mm')
+require(host_build['source_sha256']==sha(ROOT/'kits/komodo/HostMetalDiagnostic.mm')
         and host_build['process_sha256']==sha(ROOT/'build/host-metal/host-metal-originals'),'Exact live host process and loader')
 for name,digest in host_build['backend_sources'].items():require(sha(ROOT/name)==digest,'Exact compiled backend dependency')
 host=json.loads((OUT/'host-report.json').read_text());ops=host['operations']

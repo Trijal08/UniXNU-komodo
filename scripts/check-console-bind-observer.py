@@ -78,7 +78,7 @@ def main():
     require(struct.unpack('<Q', read(0xfffffff005f33bd8, 8))[0] ==
             symbols['__ZN9IOService11getPlatformEv'], 'Receiver is not the qualified platform getter')
 
-    source = (ROOT / 'kits/sheng/BootProgress.c').read_text()
+    source = (ROOT / 'kits/komodo/BootProgress.c').read_text()
     begin = source.index('void boot_progress_bind(')
     end = source.index('\nvoid boot_progress_putc(', begin)
     binding = source[begin:end]
@@ -93,7 +93,7 @@ def main():
 #include <stdio.h>
 '''
     harness += '#include "BootProgressCore.h"\n'
-    display_header = (ROOT / 'kits/sheng/BootProgressDisplay.h').read_text()
+    display_header = (ROOT / 'kits/komodo/BootProgressDisplay.h').read_text()
     harness += display_header[display_header.index('struct bp_display {'):
                               display_header.index('static void bp_clear')]
     harness += '#include "BootProgressPulse.h"\nstatic struct bp_pulse pulse;\nstatic struct bp_panic_info boot_progress_panic_vinfo;\n'
@@ -139,7 +139,7 @@ int main(void) {
         exe = Path(tmp) / 'binding'
         c.write_text(harness)
         subprocess.run(['cc', '-std=c11', '-Wall', '-Wextra', '-Werror',
-                        '-Wno-unused-function', '-I', str(ROOT / 'kits/sheng'), str(c), '-o', str(exe)],
+                        '-Wno-unused-function', '-I', str(ROOT / 'kits/komodo'), str(c), '-o', str(exe)],
                        check=True, timeout=30)
         result = subprocess.run([str(exe)], check=True, text=True, capture_output=True, timeout=10)
     report = {

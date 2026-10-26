@@ -49,7 +49,7 @@ llvm=Path(run(['brew','--prefix','llvm'],text=True).strip())/'bin';late=OUT/'Nat
 def code(p):
  b=p.read_bytes();s=next(s for g in macho(b)['segments'] for s in g['sections'] if s['name']=='__text');return b[s['fileoff']:s['fileoff']+s['size']]
 if code(obj)!=code(late):raise SystemExit('Only own initializer registration may change')
-record=json.loads((ROOT/'build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/iokit/DEVELOPMENT/IOPlatformExpert.cpo.json').read_text().strip().rstrip(','));source=ROOT/'kits/sheng/OriginalGPUProviderProbe.cpp';cmd=[];args=record['arguments'];i=0
+record=json.loads((ROOT/'build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/iokit/DEVELOPMENT/IOPlatformExpert.cpo.json').read_text().strip().rstrip(','));source=ROOT/'kits/komodo/OriginalGPUProviderProbe.cpp';cmd=[];args=record['arguments'];i=0
 while i<len(args):
  v=args[i]
  if v==record['file']:cmd.append(str(source))

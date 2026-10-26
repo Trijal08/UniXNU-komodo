@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Host test for the gated GPU power observation sequence (kits/sheng/GpuPowerBoard.h) over a software register peer.
+"""Host test for the gated GPU power observation sequence (kits/komodo/GpuPowerBoard.h) over a software register peer.
 
 Run without the cross-compiler on PATH. A model test; nothing here touches hardware.
 """
@@ -11,5 +11,5 @@ ROOT = Path(__file__).resolve().parents[1]
 with tempfile.TemporaryDirectory() as tmp:
     exe = Path(tmp) / 'gpb'
     subprocess.run(['cc', '-std=c11', '-Wall', '-Wextra', '-Werror', '-O1', '-fsanitize=address,undefined',
-                    '-I', str(ROOT / 'kits/sheng'), str(ROOT / 'kits/sheng/GpuPowerBoardTests.c'), '-o', str(exe)], check=True)
+                    '-I', str(ROOT / 'kits/komodo'), str(ROOT / 'kits/komodo/GpuPowerBoardTests.c'), '-o', str(exe)], check=True)
     print(subprocess.run([str(exe)], check=True, capture_output=True, text=True).stdout.strip())

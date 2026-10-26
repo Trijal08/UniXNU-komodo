@@ -3,7 +3,7 @@
 from pathlib import Path
 import json,hashlib,subprocess
 root=Path(__file__).resolve().parents[1];out=root/'build/cpu-desktop/ui-trace';out.mkdir(parents=True,exist_ok=True)
-s=(root/'kits/sheng/BootUiTraceProbe.c').read_text();body=s[s.index('static struct bt_entry samples'):]
+s=(root/'kits/komodo/BootUiTraceProbe.c').read_text();body=s[s.index('static struct bt_entry samples'):]
 prefix=r'''
 #include <stdint.h>
 #include <stdio.h>
@@ -134,7 +134,7 @@ int main(void){
 }
 '''
 (out/'test.c').write_text(prefix+body+main)
-subprocess.run(['clang','-std=c11','-Wall','-Wextra','-Werror','-Wno-unused-function','-O1','-g','-fsanitize=address,undefined','-pthread','-I',str(root/'kits/sheng'),str(out/'test.c'),'-o',str(out/'test')],check=True,timeout=45)
+subprocess.run(['clang','-std=c11','-Wall','-Wextra','-Werror','-Wno-unused-function','-O1','-g','-fsanitize=address,undefined','-pthread','-I',str(root/'kits/komodo'),str(out/'test.c'),'-o',str(out/'test')],check=True,timeout=45)
 r=subprocess.run([str(out/'test')],check=True,capture_output=True,text=True,timeout=15)
 (out/'formatted.txt').write_text(r.stdout)
 import importlib.util

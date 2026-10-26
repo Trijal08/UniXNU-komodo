@@ -94,12 +94,12 @@ options = ['-Dgallium-drivers=', '-Dvulkan-drivers=', '-Dplatforms=', '-Dglx=dis
            '-Dshared-glapi=disabled', '-Dxmlconfig=disabled', '-Dshader-cache=disabled',
            '-Dtools=freedreno', '-Dbuild-tests=true', '-Dvideo-codecs=']
 if args.probe:
-    options += ['-Doffline-adreno-probe=' + str(ROOT / 'kits/sheng/AdrenoCompilerProbe.c')]
+    options += ['-Doffline-adreno-probe=' + str(ROOT / 'kits/komodo/AdrenoCompilerProbe.c')]
 if not (OUT / 'build.ninja').exists():
     run([venv / 'bin/meson', 'setup', OUT, source, '--wrap-mode=nodownload', *options],
         log='mesa-ir3-configure.log', env=env, timeout=180)
 elif args.probe:
-    run([venv / 'bin/meson', 'configure', OUT, '-Doffline-adreno-probe=' + str(ROOT / 'kits/sheng/AdrenoCompilerProbe.c')],
+    run([venv / 'bin/meson', 'configure', OUT, '-Doffline-adreno-probe=' + str(ROOT / 'kits/komodo/AdrenoCompilerProbe.c')],
         log='mesa-ir3-probe-configure.log', env=env, timeout=30)
 configuration = {v['name']: v['value'] for v in json.loads((OUT / 'meson-info/intro-buildoptions.json').read_text())}
 for name, value in {'gallium-drivers': [], 'vulkan-drivers': [], 'platforms': [], 'opengl': False,
@@ -152,7 +152,7 @@ if args.probe:
                               capture_output=True, timeout=30)
     if negative.returncode != 5:
         raise SystemExit('Missing roundtrip option must genuinely refuse before output')
-    probe.update(source_sha256=hashlib.sha256((ROOT / 'kits/sheng/AdrenoCompilerProbe.c').read_bytes()).hexdigest(),
+    probe.update(source_sha256=hashlib.sha256((ROOT / 'kits/komodo/AdrenoCompilerProbe.c').read_bytes()).hexdigest(),
                  executable_sha256=hashlib.sha256(executable.read_bytes()).hexdigest(),
                  binary_sha256=hashlib.sha256(binary).hexdigest(), assembly_sha256=hashlib.sha256(assembly).hexdigest(),
                  nir_sha256=hashlib.sha256(nir).hexdigest(), missing_roundtrip_refused=True)

@@ -16,7 +16,7 @@ if shutil.disk_usage(ROOT).free < 5 * 1024**3 + 128 * 1024**2:
 OUT = ROOT / 'build/sheng-dpu-observation'
 OUT.mkdir(parents=True, exist_ok=True)
 PIN = json.loads((ROOT / 'scripts/data/sheng-display-inputs.json').read_text())
-KIT = ROOT / 'kits/sheng'
+KIT = ROOT / 'kits/komodo'
 
 
 def source(name, dts=False):

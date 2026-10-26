@@ -1,139 +1,239 @@
-"schema_version" = 2
+# UniXNU device repository for the Google Pixel 9 Pro XL (komodo, Tensor G4 "zumapro").
+# Values marked TODO are device inputs that have not been measured yet. Everything else is
+# taken from the mainline komodo device tree or from the sheng reference port (same IPSW).
 
-["board"]
-"name" = "sheng"
-"soc" = "SM8550"
-"description" = "Xiaomi Pad 6S Pro"
-"kit" = "sheng"
-"soc_source" = "sm8550"
-"os_profile" = "ipados-17.7.11-21H461"
+[board]
+name = "komodo"
+soc = "zumapro"
+description = "Google Pixel 9 Pro XL"
+kit = "komodo"
 
+# Bring-up target. iPad7,1 iPadOS 17.7.11 is the newest arm64 (non-PAC) image the base stack is
+# qualified against; it is used to prove the hardware before switching to an iPhone target.
+[ipsw]
+url = "https://updates.cdn-apple.com/2025SpringFCS/fullrestores/122-77166/DCA6CFE8-90E9-4B92-880D-3DE171798E40/iPad_Pro_HFR_17.7.11_21H461_Restore.ipsw"
+product = "iPad7,1"
+version = "17.7.11"
+build = "21H461"
+device_class = "j120ap"
+chip_id = 0x8011
+board_id = 12
+fetch = ["KernelCache", "DeviceTree", "StaticTrustCache", "Cryptex1,SystemTrustCache"]
 
-["userdata"]
-"first_lba" = 3094592
-"last_lba" = 64007162
-"lba_bytes" = 4096
-"windows" = [{ "name" = "OS", "component" = "OS" }, { "name" = "SystemOS", "component" = "Cryptex1,SystemOS" }]
+[ipsw.sha256]
+"044-76040-038.dmg" = "3f99b859c9728379110b66657c7b15285bcb1925ad8b5726542e2cdcf8b1028d"
+"044-76034-038.dmg" = "b4908cde41d23e6bc05e6af51a2c9eeb00cf0f863a6a18b1600c96a3fd70414f"
 
+# The Darwin root goes into the GPT partition named "darwin" (sda37), carved out of the end of the
+# "linux" partition on 2026-10-21: exactly 64 GiB, 1 MiB aligned, UFS LUN 0, 4096-byte sectors,
+# 512 GB model. Android's userdata and the postmarketOS root stay intact. The 2 GiB "esp" partition
+# (sda35, LBA 0x5696200) carries the payload volume. The Exynos UFS driver must look for "darwin"
+# where NativeUfs looks for "userdata", and the flash target is `fastboot flash darwin`.
+[userdata]
+# The GPT partition that carries the root image (sheng: userdata; komodo: the darwin partition carved from linux).
+partition = "darwin"
+first_lba = 0x6715300
+last_lba = 0x77152ff
+lba_bytes = 4096
+windows = [
+  { name = "OS", component = "OS" },
+  { name = "SystemOS", component = "Cryptex1,SystemOS" },
+]
 
-["kernel"]
-"defconfig" = "sheng_defconfig"
-"archives" = [
+[kernel]
+defconfig = "komodo_defconfig"
+# Archive builders of the kernel step, in order, from the sheng board minus NativeUfs and the Adreno
+# path. build-sheng-platform-power.py is the original-ApplePMGR shim the payload step requires
+# (symbol _sheng_pmgr_run); it holds no SM8550 code. It audits its vtable against an earlier prelink
+# candidate in build/native-prelink, which only exists after a first kernel build.
+archives = [
   "build-corecrypto-14.py",
   "build-corecrypto-14.py --namespace",
-  "component:ArmDTPlatform",
-  "component:ArmCpu",
-  "component:SoftwareAES",
-  "build-software-aes-bindings.py",
-  "component:ShengUfs",
-  "component:VirtioMmioBlock",
-  "component:RamBlock",
-  "build-virtio-mmio-bindings.py --component RamBlock --directory build/ram-block",
-  "build-virtio-mmio-bindings.py --component VirtioMmioBlock",
+  "build-arm-driver.py ArmDTPlatform",
+  "build-arm-driver.py ArmCpu",
+  "build-arm-driver.py NativeAES",
+  "build-native-aes-bindings.py",
+  # The owner-signed policies over the OS and SystemOS windows of the root image (`unixnu build policies`),
+  # as the archive the kernel links with CONFIG_XNU_VERIFIED_ROOT_PROBE and the verified NativeUfs reads.
+  "build-verified-root-probe.py --component os --include-systemos",
+  # The Tensor host glue, the darwin GPT partition for the root image, owner-verified reads (add
+  # --unverified for a probe-only driver without the policies).
+  "build-arm-driver.py NativeUfs --host exynos --root-partition darwin",
+  # The verified VirtIO block layer with the two-volume policy bundle: it also answers the owner-root kernel's
+  # root/volume/manifest queries (native_verified_block_*), so it is the archive the kernel links
+  # (CONFIG_XNU_NATIVE_VIRTIO_BLOCK_ARCHIVE) even though komodo has no VirtIO transport.
+  "build-arm-driver.py NativeVirtioBlock --verified-root --verified-root-bundle",
+  "build-arm-driver.py NativeRamBlock",
+  "build-native-virtio-bindings.py --component NativeRamBlock --directory build/native-ram-block",
+  "build-native-virtio-bindings.py --component NativeVirtioBlock --directory build/native-virtio-block-verified-bundle",
   "build-mockfs-fixture.py",
   "build-sheng-platform-power.py",
   "build-boot-progress.py",
   "build-libpthread-kernel.py",
-  "component:Adreno740",
-  "build-adreno740-kits.py",
-  "build-adreno740-accelerator.py",
-  "component:ShengHidInput",
-  "component:AppleKeyStoreState",
-  "build-gop-legacy-display.py",
+  "build-native-legacy-display.py",
+  # Link stubs for the diagnostics of drivers komodo does not link (CONFIG_XNU_EXTRA_LD_ARCHIVES).
+  "build-komodo-linkstubs.py",
 ]
-"config_fragments" = ["arch:configs/common.config", "soc:configs/sm8550.config", "os:configs/ipados.config"]
-"patch_series" = ["arch:patches/xnu/series", "soc:patches/xnu/series", "os:patches/xnu/series", "device:patches/xnu/series"]
 
+[kernel.prelink]
+tool = "kits/NativePrelink/emit_prelink.py"
+kernel = "build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/mach.development.bcm2837.unstripped.noctf"
+kernelcache_sha256 = "f18b4df865405f2a287b84977d7aca745e056d656d9fc9df1662970ce2969de7"
+slide = "-0x1000000"
+early_security_init = "com.apple.driver.AppleMobileFileIntegrity=0xfffffff005ab4ae0"
+roots = [
+  "com.apple.AppleFSCompression.AppleFSCompressionTypeZlib",
+  "com.apple.driver.AppleARMPlatform",
+  "com.apple.driver.AppleARMWatchdogTimer",
+  "com.apple.driver.AppleAudioClockLibs",
+  "com.apple.driver.AppleEffaceableStorage",
+  "com.apple.driver.AppleIISController",
+  "com.apple.driver.AppleM2ScalerCSCDriver",
+  "com.apple.driver.AppleMobileFileIntegrity",
+  "com.apple.driver.ApplePMGR",
+  "com.apple.driver.IODARTFamily",
+  "com.apple.filesystems.apfs",
+  "com.apple.iokit.CoreAnalyticsFamily",
+  "com.apple.iokit.IOAVFamily",
+  "com.apple.iokit.IOAudio2Family",
+  "com.apple.iokit.IOCECFamily",
+  "com.apple.iokit.IOCryptoAcceleratorFamily",
+  "com.apple.iokit.IOGPUFamily",
+  "com.apple.iokit.IOHDCPFamily",
+  "com.apple.iokit.IOMobileGraphicsFamily",
+  "com.apple.iokit.IOReportFamily",
+  "com.apple.iokit.IOSlowAdaptiveClockingFamily",
+  "com.apple.iokit.IOStorageFamily",
+  "com.apple.iokit.IOSurface",
+  "com.apple.kec.Libm",
+  "com.apple.kec.corecrypto",
+  "com.apple.kext.AppleMatch",
+  "com.apple.kext.CoreTrust",
+  "com.apple.security.AppleImage4",
+  "com.apple.security.sandbox",
+  "com.apple.iokit.IOHIDFamily",
+  "com.apple.iokit.IOHIDEventDriver",
+]
 
-["firmware"]
-"config" = "sheng"
-"dsc" = "Platforms/Xiaomi/shengPkg/sheng.dsc"
-"fd" = "Build/shengPkg/{target}_CLANGPDB/FV/SILICIUM_UEFI.fd"
-"preflight" = ["scripts/check-sheng.py"]
-"submodules" = ["Common/Mu", "Common/Mu_OEM_Sample", "Silicium-ACPI", "Silicon/Silicium/OpensslPkg/Library/OpensslLib/openssl"]
-"patches" = ["Resources/MuPatches/Gic-Spurious.patch"]
-"packages" = ["{uefi}", "{uefi}/Platforms/Xiaomi", "{tree}/package", "{tree}/drivers/DarwinBoot", "{edk2}", "{uefi}/Common/Mu", "{uefi}/Common/Mu_OEM_Sample", "{uefi}/Silicon/Qualcomm", "{uefi}/Silicon/Silicium", "{uefi}/Silicium-ACPI", "{uefi}/Silicium-ACPI/Platforms/Xiaomi", "{uefi}/Silicium-ACPI/Silicon/Qualcomm"]
+# Mu-Silicium port "caimito" (Pixel 9 family); DEVICE_MODEL 0 selects komodo. The port's FDF already
+# carries UFS, PartitionDxe, Fat, SimpleFb (1344x2992), Keypad, serial console and BdsDxe. UniXNU
+# and DarwinBoot are not embedded: the firmware volume is pinned at 0x201000 bytes with the UEFI
+# stack right behind it, so UniXNU runs from the ESP as EFI/BOOT/BOOTAA64.EFI (BdsDxe default) and
+# DarwinBoot.efi ships in the payload (see [payload] loader). The package list mirrors
+# Platforms/Google/caimitoPkg/DeviceBuild.py. Build with --edk2 pointing at the Mu-Silicium
+# Mu_Basecore submodule so the firmware is linked against the same base it runs on today.
+[firmware]
+config = "caimito"
+dsc = "Platforms/Google/caimitoPkg/caimito.dsc"
+fd = "Build/caimitoPkg/{target}_CLANGPDB/FV/SILICIUM_UEFI.fd"
+submodules = [
+  "Binaries",
+  "Common/Mu",
+  "Common/Mu_OEM_Sample",
+  "Silicium-ACPI",
+  "Silicon/Silicium/OpensslPkg/Library/OpensslLib/openssl",
+]
+patches = []
+packages = [
+  "{uefi}",
+  "{tree}/package",
+  "{tree}/drivers/DarwinBoot",
+  "{edk2}",
+  "{uefi}/Platforms/Google",
+  "{uefi}/Common/Mu",
+  "{uefi}/Common/Mu_OEM_Sample",
+  "{uefi}/Silicon/Samsung",
+  "{uefi}/Silicon/Silicium",
+  "{uefi}/Silicium-ACPI",
+  "{uefi}/Silicium-ACPI/Platforms/Samsung",
+  "{uefi}/Silicium-ACPI/Silicon/Samsung",
+]
 
-["firmware"."defines"]
-"ENABLE_SECUREBOOT" = "1"
-"DEVICE_MODEL" = "sheng"
-"MEMORY_PROTECTION" = "TRUE"
-"SHIP_MODE" = "FALSE"
-"BUILDID_STRING" = "sheng-research"
+[firmware.defines]
+DEVICE_MODEL = "0"
+MEMORY_PROTECTION = "TRUE"
+SHIP_MODE = "FALSE"
+BUILDID_STRING = "komodo-research"
 
+# caimito.toml: lz4 legacy-frame firmware volume, no appended DTB, Android boot header v4.
+# `unixnu bootimg` gzips and appends a DTB and verifies v0..v2 header fields, so the boot image is
+# built with the Mu-Silicium script (build_uefi.py -d caimito, model 0) and carries no payload
+# ramdisk. The payload is flashed to the "esp" partition instead (scripts/komodo-esp.py).
 
+[payload]
+volume = "KOMODOESP"
+size_mib = 192
+loader = "payload"
+title = "komodo: source 4K XNU"
+dram_size = "0x80000000"
+panic_screen = true
+skip_setup_tool = "scripts/seed-data-skip-setup.py"
+trust_cache_sha256 = [
+  "7416ca4f8377146626bb284e2133c76bee6cb4e3ee0af5d648b186235a7323a7",
+  "8900d6a93d7a59ce1a872a5c081e559f4240a218f97e12d44d22dda46644d68f",
+]
+timeout = 3
 
-["payload"]
-"volume" = "SHENGESP"
-"size_mib" = 208
-"loader" = "firmware"
-"title" = "Boot"
-"dram_size" = "0x80000000"
-"skip_setup_tool" = "scripts/seed-data-skip-setup.py"
-"panic_screen" = true
-"kernel_args" = ["-v", "serial=3", "debug=0x14e", "kt_fixed_zones=120", "offline-legacy-register=1", "offline-legacy-gop=1", "offline-legacy-unit-scale=2", "offline-legacy-pm=1", "offline-legacy-validate=1", "offline-legacy-transfer=1", "offline-legacy-cpu-present=1", "offline-hid-home=1", "offline-hid-input=1", "offline-legacy-phase=4", "offline-mobile-graphics-client=1", "offline-mobile-graphics-load=1", "offline-apfs-load=1", "boot-progress=2", "-apfs_shared_datavolume", "offline-key-events=1", "native-ufs-root=1", "sheng-pmgr=2", "sheng-disable-watchdogd=1", "sheng-lite=1", "boot-ui-focus4=SpringBoard", "sheng-smp=1", "sheng-cpufreq=3", "sheng-touch=4", "sheng-aks=1", "sheng-gpu-power=9", "sheng-gpu-metal=1", "sheng-fb-gpu=1", "sheng-banner=0", "sheng-gpu-perf=8", "sheng-gpu-addon=1", "armcpu-spi-ipi=1", "-no_slto_panic", "ml-timeout-lock-panic-scale=40", "sheng-touch-hid=1", "sheng-data-persist=2", "sheng-staged-apps=1", "sheng-buttons=1", "sheng-backlight=1", "sheng-vsync=120"]
+# The sheng argument set minus its GPU, touch and cpufreq switches. "native-ufs-root=1" publishes the
+# darwin partition through the owner-verified NativeUfs, "sheng-data-persist=2" writes the Data volume
+# through to the store at the end of that partition (below the 1024 MiB log reserve), and "sheng-pmgr=2"
+# publishes the original PMGR nub the target AMFI needs. The text-fixup is for the shared IPSW's dyld cache.
+kernel_args = [
+  "-v",
+  "serial=3",
+  "debug=0x14e",
+  "native-ufs-root=1",
+  "sheng-data-persist=2",
+  # -enable_kprintf_spam (pass it with --kernel-arg when tracing): a DEVELOPMENT kernel drops every kprintf without it,
+  # and with it every kprintf in the kernel goes out over the polled UART, which slows the whole boot several-fold.
+  "kt_fixed_zones=120",
+  "offline-legacy-register=1",
+  "offline-legacy-gop=1",
+  "offline-legacy-unit-scale=2",
+  "offline-legacy-pm=1",
+  "offline-legacy-validate=1",
+  "offline-legacy-transfer=1",
+  "offline-legacy-cpu-present=1",
+  "offline-hid-home=1",
+  "offline-hid-input=1",
+  "offline-legacy-phase=4",
+  "offline-mobile-graphics-client=1",
+  "offline-mobile-graphics-load=1",
+  "offline-apfs-load=1",
+  # boot-progress=2: kernel console and stage names on the panel; the UniXNU hooks mirror them, the UART keeps every byte.
+  "boot-progress=2",
+  "-apfs_shared_datavolume",
+  "offline-key-events=1",
+  "sheng-pmgr=2",
+  "armcpu-diagnostics=1",
+  "sheng-disable-watchdogd=1",
+  "sheng-disable-jobs=com.apple.identityservicesd,com.apple.locationd,com.apple.CommCenter,com.apple.bluetoothd",
+  "boot-ui-focus3=Preferences",
+  "boot-ui-focus4=SpringBoard",
+  # Secondary cores: ArmCpu starts them with PSCI CPU_ON through its EL2 trampoline (the firmware starts them at
+  # EL2). IPIs are plain SGIs here (no hypervisor traps them, unlike sheng's armcpu-spi-ipi=1); the self-IPI lets
+  # XNU clear SIGPdisabled on each new core.
+  "sheng-smp=1",
+  "armcpu-self-ipi=1",
+  "sheng-aks=1",
+  "sheng-banner=0",
+  "-no_slto_panic",
+  "ml-timeout-lock-panic-scale=40",
+  "sheng-vsync=120",
+  "text-fixup0=dyld_shared_cache_arm64.15,421e8bc,28ad1bb0008544f9,c0035fd6008544f9",
+]
 
-["payload"."install"]
-"title" = "Install and boot"
-"confirm" = "ERASE all iPadOS user data and install again?"
-"confirm_titles" = ["Erase Data, skip Hello, boot", "Erase Data, show Hello, boot"]
-"confirm_args" = ["sheng-data-reset=1", "sheng-data-reset=2"]
-
-
-["payload"."adt"]
-"chip_id" = "207"
-"owned_memory_size" = "0x130000000"
-"root_match_volume_uuid" = "04769D26-2CA0-4825-B443-E2E5F88300F2"
-"packed_data_ramdisk" = true
-"persistent_data" = true
-"unique_chip_id" = "required"
-
-
-
-["bootimg"]
-"dtb_node" = [{ "path" = "/reserved-memory/splash_region", "props" = [{ "name" = "label", "type" = "s", "value" = "cont_splash_region" }, { "name" = "reg", "type" = "x", "value" = ["0x0", "0xb8000000", "0x0", "0x2b00000"] }] }]
-
-
-["device_tree"]
-"source" = "device:dts/sheng.dts"
-"include_dirs" = ["soc:dts"]
-
-
-["components"]
-"include" = ["ArmDTPlatform", "ArmCpu", "SoftwareAES", "ShengUfs", "VirtioMmioBlock", "RamBlock", "Adreno740", "AdrenoMetal", "GopFramebuffer", "ShengHidInput", "ShengNovatekTouch", "QcomGeniSpi", "AppleKeyStoreState", "XnuPrelink", "DarwinBoot", "VerifiedRoot", "ShengPreflight", "AirNir", "Ath12kWifi"]
-
-
-["adt"]
-
-["adt"."product"]
-
-["adt"."product"."string"]
-"model" = "xiaomi,sheng"
-"artwork-display-gamut" = "sRGB"
-
-
-["adt"."product"."u32"]
-"thin-bezel" = 1
-
-
-
-["adt"."defaults"]
-
-["adt"."defaults"."u32"]
-"sleep-disabled" = 1
-
-
-
-["adt"."buttons"]
-
-["adt"."buttons"."string"]
-"compatible" = "buttons"
-"device_type" = "buttons"
-
-
-["adt"."buttons"."strings"]
-"button-names" = ["hold", "voldown", "volup"]
-
-
-["adt"."buttons"."u32"]
-"home-button-type" = 2
+[payload.adt]
+tool = "scripts/make-komodo-adt.py"
+chip_id = "207"
+# XNU takes one physical range. Bank 0 is 2 GiB at 0x80000000 with no-map holes (GSA at
+# 0x90200000, more at 0x92e00000 and 0x94000000); the upper banks run from 0x880000000 for
+# about 13.5 GiB. Start with 4 GiB owned and let DarwinBoot place it; raise it once the window
+# is known to land in the upper bank.
+owned_memory_size = "0x100000000"
+root_match_volume_uuid = "04769D26-2CA0-4825-B443-E2E5F88300F2"
+cpu_regs = "0,0x100,0x200,0x300,0x400,0x500,0x600,0x700"
+psci_method = "smc"
+packed_data_ramdisk = true
+ipad_identity = true
+unique_chip_id = "required"

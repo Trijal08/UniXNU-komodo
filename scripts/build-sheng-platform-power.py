@@ -44,7 +44,7 @@ for i in range(177, 340):
 header += '};\nstatic_assert(sizeof(ApplePMGR)==0x4b8a8,"Original provider storage");\n'
 (OUT / 'OriginalPMGRABI.h').write_text(header)
 (OUT / 'GuardedPMGRSlots.inc').write_text(guards)
-source = ROOT / 'kits/sheng/ShengPlatformPower.cpp'
+source = ROOT / 'kits/komodo/ShengPlatformPower.cpp'
 obj = OUT / 'ShengPlatformPower.o'
 record = json.loads((ROOT / 'build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/iokit/DEVELOPMENT/IOPlatformExpert.cpo.json').read_text().strip().rstrip(','))
 command, i = [], 0
@@ -58,10 +58,10 @@ while i < len(arguments):
         i += 1
     elif arg == '-Xclang' and arguments[i + 1].startswith('-W'):
         i += 1
-    elif not arg.startswith('-W'):
+    elif arg.startswith('-Wno-') or not arg.startswith('-W'):
         command.append(arg)
     i += 1
-command += ['-Wall', '-Wextra', '-Werror', '-Wno-unused-parameter', '-Wno-c99-designator',
+command += ['-Wall', '-Wextra', '-Werror', *[a for a in arguments if a.startswith('-Wno-')], '-Wno-unknown-warning-option', '-Wno-unused-parameter', '-Wno-c99-designator',
             '-Wno-reorder-init-list', '-Wno-deprecated-enum-enum-conversion',
             '-Wno-unnecessary-virtual-specifier', '-I', OUT, '-I', ROOT / '.cache/xnu-work/osfmk']
 run(command, cwd=record['directory'])

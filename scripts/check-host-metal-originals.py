@@ -17,7 +17,7 @@ base=ROOT/'.cache/firmware/target-volumes/os-mount/System/Library'
 paths=[base/'Frameworks/QuartzCore.framework/default.metallib',base/'PrivateFrameworks/RenderBox.framework/default.metallib']
 expected=['606f913adf520420f9b4bb666efb782a68c830f082f1e559e17b20d0d13adbc9','d76883f626b1527c36fb0940cf27dcade503a55cf2fa05c8f7a247a40ccebec4']
 require([sha(p) for p in paths]==expected,'Both exact original OS libraries')
-source=ROOT/'kits/sheng/HostMetalDiagnostic.mm';kit=ROOT/'kits/AirNir'
+source=ROOT/'kits/komodo/HostMetalDiagnostic.mm';kit=ROOT/'kits/AirNir'
 obj=OUT/'Library.o';exe=OUT/'host-metal-originals'
 run(['xcrun','clang','-std=c11','-O2','-Wall','-Wextra','-Werror','-c',kit/'Library.c','-o',obj])
 run(['xcrun','clang++','-std=c++17','-O2','-Wall','-Wextra','-Werror','-Wno-deprecated-declarations',

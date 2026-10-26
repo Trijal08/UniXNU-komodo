@@ -1,101 +1,95 @@
-# UniXNU sheng
+# UniXNU-komodo
 
-Device support for Xiaomi Pad 6S Pro 12.4, codename `sheng`, with Qualcomm
-SM8550. The device profile selects
-[UniXNU-sm8550-common](https://github.com/UniXNU/UniXNU-sm8550-common) and the
-`ipados-17.7.11-21H461` OS profile in UniXNU.
+Device repository for the Google Pixel 9 Pro XL (komodo, Google Tensor G4 "zumapro"). It follows the
+[UniXNU porting guide](https://unixnu.com/porting/). The UEFI port lives in a separate Mu-Silicium
+repository and already provides GOP, volume buttons, UART logs and UFS block I/O.
 
-## Structure
+## Layout
 
 | Path | Contents |
 | --- | --- |
-| `porting.toml` | Subsystem inputs, findings, evidence and completion criteria |
-| `board.toml` | Device configuration and component selection |
-| `feeds.toml` | Pinned SoC source |
-| `configs/sheng_defconfig` | Device kernel settings |
-| `dts/sheng.dts` | Memory, CPU selection, and peripheral configuration |
-| `patches/xnu/series` | Board patches |
-| `proprietary-files.txt` | Firmware input paths |
-| `package/` | Device policy, display, input, and diagnostics |
-| `scripts/` | Device build and inspection tools |
-
-`Adreno740` and `AdrenoMetal` provide the GPU implementation. Shared GMU,
-command database, and GPU SMMU operations are in the SoC repository's
-`Sm8550Platform` kit. sheng supplies GPU votes, signed ZAP firmware,
-reserved memory, and display integration. GPU initialization uses the
-staged platform build. The hardware DTS contains GPU resources; the ADT
-exports nodes with `unixnu,adt-name`.
-
-`ShengUfs` includes the device's storage and persistence policy.
-`ShengHidInput` and `ShengNovatekTouch` provide the input integration.
-`QcomGeniSpi` provides the shared SPI controller interface.
-`Ath12kWifi` supplies the Wi-Fi stack through board PCIe, MSI, DMA,
-and network interfaces. The payload volume is 208 MiB. The device selects
-sRGB display properties and a 120 Hz display timing request.
-
-## Development record
-
-Maintain [porting.toml](porting.toml) with every subsystem change. It records
-hardware, configuration, procedures, findings, evidence and completion criteria.
-The [device page](https://unixnu.com/devices/sheng) renders this record.
-Maintainers and agents follow the [same guide](https://unixnu.com/porting/records).
-The required `Porting record` CI check validates structure, component coverage
-and updates to findings or evidence for changed code.
-
-This repository owns the ShengUfs, ShengHidInput, ShengNovatekTouch and
-ShengPreflight submodules. Shared components come from the selected profiles
-and UniXNU catalog. Read the [UFS guide](https://unixnu.com/porting/ufs) before
-changing storage resources or policy.
+| `board.toml` | Board, IPSW, userdata, kernel, firmware, payload and ADT description |
+| `configs/komodo_defconfig` | Kernel switches: generic platform, CPU, display and root policy; Qualcomm drivers off |
+| `scripts/make-komodo-adt.py` | Apple device tree generator with the komodo bus map |
+| `scripts/komodo-gpt.py` | Prints a UFS LUN's GPT and the `[userdata]` snippet |
+| `scripts/komodo-esp.py` | Adds UniXNU and DarwinBoot to the payload volume for the `esp` partition |
+| `package/` | Bring-up glue taken from UniXNU-sheng: boot progress, legacy display, HID, key store and process probes, the original-PMGR shim. Touch, cpufreq and GPU probes are stubbed in `KomodoBoardProbes.cpp` |
+| `scripts/build-*.py` | Archive builders taken from UniXNU-sheng, kit paths repointed to `kits/komodo` |
 
 ## Build
 
-The firmware must embed UniXNU, UniXNUDxe, DarwinBoot and the shared
-`UniXNURamDiskDxe`, with DiskIoDxe and FAT support. These modules expose the
-payload configuration and its boot entries. Follow
-[firmware integration](https://unixnu.com/porting/uefi-firmware#required-integration).
-
-Run these commands from the UniXNU checkout:
-
 ```sh
-./unixnu defconfig sheng_defconfig --device ../UniXNU-sheng
-./unixnu fetch --device ../UniXNU-sheng
-./unixnu status --device ../UniXNU-sheng --json
-./unixnu build kernel --device ../UniXNU-sheng --kernelcache /path/to/kernelcache
-./unixnu build firmware --device ../UniXNU-sheng --uefi ../uefi-sheng
-./unixnu build payload --device ../UniXNU-sheng --unique-chip-id "$UNIXNU_UNIQUE_CHIP_ID" \
-  --data-ramdisk /path/to/data.dbr --trust-cache /path/to/trustcache
-./unixnu bootimg --device ../UniXNU-sheng --uefi ../uefi-sheng --dtb /path/to/firmware.dtb
+cd UniXNU
+./unixnu defconfig komodo_defconfig -D ../UniXNU-komodo
+./unixnu fetch
+./unixnu ipsw fetch
+./unixnu build kernel
+./unixnu build package
+./unixnu build firmware --uefi ../Mu-Silicium --edk2 ../Mu-Silicium/Mu_Basecore
+./unixnu build payload --unique-chip-id <hex> --trust-cache <bundle> --data-ramdisk <seed>
+bash scripts/build-darwinboot.sh
+python3 ../UniXNU-komodo/scripts/komodo-esp.py out/komodo/payload/payload.img \
+    out/komodo/package/Build/Out/AARCH64-DEBUG/UniXNU.efi \
+    package/Build/DarwinBootPkg/DEBUG_CLANGPDB/AARCH64/DarwinBoot.efi out/komodo/esp.img
+fastboot flash esp out/komodo/esp.img
 ```
 
-Outputs are under `out/sheng/ipados-17.7.11-21H461/sheng/`.
-The payload step compiles the hardware DTS and writes `kernel.macho.adt`.
-The boot image takes the firmware's FDT with `--dtb`.
+The firmware is the Mu-Silicium `caimito` port with `DEVICE_MODEL=0`. UniXNU runs from the ESP as
+`EFI/BOOT/BOOTAA64.EFI` and DarwinBoot is loaded from the payload, so the firmware volume stays
+unchanged. The boot image comes from `build_uefi.py -d caimito` (lz4, header v4, no ramdisk).
 
-Build inputs include the selected kernelcache, verified root policies,
-vendor firmware, generated GPU register and power headers, UEFI source,
-and the Data and trust-cache inputs used by the payload. Keep binary
-inputs in local caches. `scripts/data/adreno-inputs.json` in UniXNU records
-GPU firmware pins.
+The payload volume is written to the 2 GiB `esp` partition on the UFS rather than packed into the
+boot image. The Darwin root image goes into the 64 GiB `darwin` partition (`fastboot flash darwin`), carved
+from the end of `linux`, so Android and postmarketOS stay intact; the Exynos UFS driver matches
+that GPT name. Build the boot image with the Mu-Silicium script until `unixnu bootimg` understands the
+Android boot header v4 the Pixel bootloader expects.
 
-## Documentation
+## Hardware map
 
-The documentation site is maintained in UniXNU:
+| Block | Address | Driver |
+| --- | --- | --- |
+| GIC-600 (GICv3) | GICD 0x10400000, GICR 0x10440000 | ArmCpu (generic) |
+| UART0 | 0x10870000 | firmware serial |
+| UFS host and PHY | 0x13200000, 0x13204000 | Exynos UFS driver, to write |
+| USI2 / SPI2 | 0x108900c0, 0x10890000 | USI SPI driver, to write |
+| Touch | Synaptics S3908 TCM on SPI2, TSP_INT gpn0-0 | TCM probe into NativeHidInput, to write |
+| DECON0 / DSIM0 | 0x19470000, 0x19440000 | GOP framebuffer through NativeMobileDisplay |
+| Mali-G715 | 0x1f000000 | none |
+| DRAM | 2 GiB at 0x80000000, 13.5 GiB from 0x880000000 | DarwinBoot window |
 
-- [sheng device guide](https://unixnu.com/devices/sheng)
-- [Building](https://unixnu.com/building)
-- [Device repository specification](https://unixnu.com/porting/device-repository)
-- [Device-tree specification](https://unixnu.com/porting/device-tree)
-- [Component catalog](https://unixnu.com/reference/components)
-- [Migration](https://unixnu.com/porting/migration)
+## Device inputs still missing
 
-Report build results and device boot, storage, display, input, and GPU
-observations separately, with source revisions and commands.
+| Input | Where it goes |
+| --- | --- |
+| Data seed volume UUID | `configs/komodo_defconfig` |
+| Platform seed | `--unique-chip-id` |
+| Boot core MPIDR | first value of `[payload.adt] cpu_regs` |
 
-## Local build inputs
+## Inherited from sheng, still to adapt
 
-Save device paths and boot arguments in `unixnu.local.toml` in the UniXNU
-checkout. See the [configuration reference](https://unixnu.com/reference/configuration#local-build-inputs).
-Then use `./unixnu kernel`, `./unixnu firmware`, `./unixnu payload`, and
-`./unixnu bootimg`. Argument changes require rebuilding the payload and boot
-image. See [boot arguments](https://unixnu.com/xnu/boot-arguments#apply-arguments)
-and [green-bar diagnosis](https://unixnu.com/guide/debugging#green-bar).
+- `package/BootReset.c` and `BootResetCore.h` reboot into fastboot through the SM8550 SPMI PMIC arbiter. Do not pass `sheng-autoreset` on komodo until it is rewritten for the Exynos PMU or PSCI SYSTEM_RESET2.
+- `package/BootLog.c` writes its diagnostic log through NativeUfs weak imports; it stays silent until the Exynos UFS driver exports the same functions.
+- `scripts/build-sheng-platform-power.py` audits the PMGR vtable against an earlier prelink candidate under `build/native-prelink`; the first kernel build needs that reference bootstrapped.
+- Every script under `scripts/` that mentions Adreno, GMU, Turnip, Metal or Novatek is sheng's GPU and touch tooling and can be deleted once the archive list is proven on a Mac.
+
+## Building on Linux
+
+The kernel builds on Linux with the shim toolchain in `~/Builds/unixnu-linux` (xcrun, make, clang,
+codesign, plutil, install, xcodebuild with the firehose recipe, sw_vers, ditto, brew; cctools ld64;
+a host sysroot; mig, iig-tools, unifdef and lzfse built from source; the iPhoneOS 17.5 and macOS
+14.5 SDKs). Source `~/Builds/unixnu-linux/env.sh` first. The original kernelcache is decoded once
+with lzfse and passed with `--kernelcache`. `configs/bootstrap_defconfig` builds the prelinked
+candidate that `scripts/audit-storage-interface-offline.py` and the PMGR builder audit; copy its
+`kernel.macho` and `kernel.json` into `build/native-prelink` as `native-apfs-load-positive` and
+`native-owner-ufs-rootauth3-candidate` before the full `komodo_defconfig` build.
+
+## State
+
+| Stage | State |
+| --- | --- |
+| UEFI firmware, GOP, buttons, UART, UFS | works (Mu-Silicium port) |
+| UniXNU menu and payload | works (2026-10-21): BOOTAA64.EFI from the esp partition, menu and test payload on the panel |
+| DarwinBoot and kernel entry | works (2026-10-21): firmware is at EL2, the override DarwinBoot drops to EL1; a prebuilt uke kernel shows the green, blue and magenta probe bars (hand-off, entry, pre-MMU) and the stage 3 probe resets the phone after the MMU is on |
+| Platform expert | stage 5 kernel built on Linux 2026-10-22 (komodo-stage5_defconfig); first boot pending |
+| Storage and root | no driver |
+| Userland | not reached |

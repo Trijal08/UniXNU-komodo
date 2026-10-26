@@ -1,6 +1,6 @@
 #!/bin/busybox sh
 # sheng log reader (see build-linux-log-boot.py): copies the UniXNU diagnostic log window (the last 32 MiB of userdata, written by
-# kits/sheng/BootLog.c) into RAM and offers it on a USB CDC ACM shell, where scripts/read-sheng-log.py fetches it and then runs
+# kits/komodo/BootLog.c) into RAM and offers it on a USB CDC ACM shell, where scripts/read-sheng-log.py fetches it and then runs
 # /bin/rebootbl to return to fastboot. Block devices are only read; nothing is mounted.
 /bin/busybox --install -s /bin
 mkdir -p /proc /sys /dev /run /tmp

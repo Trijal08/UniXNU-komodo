@@ -91,7 +91,7 @@ for vertex in vertices:
   vn=f"{vertex['library']}-{vertex['index']}";fn=f"{fragment['library']}-{fragment['index']}";r,words=encode_pair(reference/vn,reference/fn)
   require(r.varyings==0 and r.stride==4 and r.position==0,'Constant fragment linkage still exports actual position')
   original_pairs.append(dict(vertex=vn,fragment=fn,words_sha256=hashlib.sha256(struct.pack('<'+'I'*len(words),*words)).hexdigest()))
-llvm=Path(run(['brew','--prefix','llvm'],text=True).strip())/'bin';source=ROOT/'kits/sheng/AdrenoVPCFragment.ll';bc=OUT/'witness.bc';witness=OUT/'witness';run([llvm/'llvm-as',source,'-o',bc]);env=dict(os.environ,IR3_SHADER_DEBUG='asmroundtrip')
+llvm=Path(run(['brew','--prefix','llvm'],text=True).strip())/'bin';source=ROOT/'kits/komodo/AdrenoVPCFragment.ll';bc=OUT/'witness.bc';witness=OUT/'witness';run([llvm/'llvm-as',source,'-o',bc]);env=dict(os.environ,IR3_SHADER_DEBUG='asmroundtrip')
 meta=json.loads(run([ROOT/'build/mesa-ir3/src/freedreno/ir3/air_nir',bc,'0xffff43050a01',witness,'--compile'],env=env,text=True));require(meta['asm_roundtrip'],'Actual authored FS ISA roundtrip')
 r,words=encode_pair(reference/'QuartzCore-7',witness);registers=decode(words)
 vi,va=load(reference/'QuartzCore-7');fi,fa=load(witness)

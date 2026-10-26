@@ -35,7 +35,7 @@ run([llvm/'llvm-objcopy','--remove-section=__DATA,__mod_init_func','--globalize-
 def code(p):
  b=p.read_bytes();s=next(s for g in macho(b)['segments'] for s in g['sections'] if s['name']=='__text');return b[s['fileoff']:s['fileoff']+s['size']]
 if code(obj)!=code(late):raise SystemExit('Only owned initializer registration may change')
-record=json.loads((ROOT/'build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/iokit/DEVELOPMENT/IOPlatformExpert.cpo.json').read_text().strip().rstrip(','));source=ROOT/'kits/sheng/AcceleratorABIProbe.cpp';cmd=[];args=record['arguments'];i=0
+record=json.loads((ROOT/'build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/iokit/DEVELOPMENT/IOPlatformExpert.cpo.json').read_text().strip().rstrip(','));source=ROOT/'kits/komodo/AcceleratorABIProbe.cpp';cmd=[];args=record['arguments'];i=0
 while i<len(args):
  v=args[i]
  if v==record['file']:cmd.append(str(source))
@@ -44,7 +44,7 @@ while i<len(args):
  elif not v.startswith('-W'):cmd.append(v)
  i+=1
 cmd+=['-Wall','-Wextra','-Werror','-Wno-unused-parameter','-Wno-unnecessary-virtual-specifier','-Wno-c99-designator','-Wno-reorder-init-list','-Wno-deprecated-enum-enum-conversion','-I',str(ROOT/'.cache/xnu-work/osfmk')];run(cmd,cwd=record['directory'])
-original_source=ROOT/'kits/sheng/OriginalGPUClientABIProbe.cpp';original_cmd=[str(v).replace(str(source),str(original_source)).replace(str(OUT/'AcceleratorABIProbe.o'),str(OUT/'OriginalGPUClientABIProbe.o')) for v in cmd];run(original_cmd,cwd=record['directory'])
+original_source=ROOT/'kits/komodo/OriginalGPUClientABIProbe.cpp';original_cmd=[str(v).replace(str(source),str(original_source)).replace(str(OUT/'AcceleratorABIProbe.o'),str(OUT/'OriginalGPUClientABIProbe.o')) for v in cmd];run(original_cmd,cwd=record['directory'])
 archive=OUT/'libNativeOfflineAccelerator.late.a';archive.unlink(missing_ok=True);run(['xcrun','ar','rcs',archive,late,OUT/'original-bindings.o',OUT/'AcceleratorABIProbe.o',OUT/'OriginalGPUClientABIProbe.o'])
 sources=[ROOT/'drivers/AdrenoMetal/NativeOfflineAccelerator.cpp',ROOT/'drivers/AdrenoMetal/OriginalAcceleratorABI.h',source,original_source]
 (OUT/'build-report.json').write_text(json.dumps(dict(source_sha256={str(p.relative_to(ROOT)):sha(p) for p in sources},archive_sha256=sha(archive),

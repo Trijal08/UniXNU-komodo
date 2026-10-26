@@ -53,8 +53,8 @@ def main():
     require(package['boot_args'][-2:] == ['boot-progress=1','-apfs_shared_datavolume'], 'Missing diagnostic/Data arguments')
     require(load(BASE/'host/report.json')['passed'] and load(BASE/'code/report.json')['passed'], 'Host/code checks failed')
     build = load(ROOT/'build/boot-progress/build-report.json')
-    require(build['source_sha256'] == sha(ROOT/'kits/sheng/BootProgress.c') and
-            build['core_sha256'] == sha(ROOT/'kits/sheng/BootProgressCore.h'), 'Stale diagnostic build')
+    require(build['source_sha256'] == sha(ROOT/'kits/komodo/BootProgress.c') and
+            build['core_sha256'] == sha(ROOT/'kits/komodo/BootProgressCore.h'), 'Stale diagnostic build')
     for name, digest in load(BASE/'code/report.json')['objects'].items():
         require(sha(ROOT/name) == digest, 'Changed compiled object: '+name)
     results = {}

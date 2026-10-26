@@ -77,7 +77,7 @@ for frames,disabled in ((1,False),(2,False),(2,True)):
   int(contexts[0]['TCR_EL1'],16)==0x22a51a251a and int(contexts[0]['SCTLR_EL1'],16)&1 and contexts[0]['task']==d['actual_process']['task'],'Actual client CPU TCR/SCTLR/task; no active GPU-SMMU claim')
  hp=folder/('host-'+tag+'-report.json');host=load(hp);provenance=load(folder/('host-'+tag+'-provenance.json'))
  require(provenance['host_exit']==0 and provenance['report_sha256']==sha(hp) and provenance['candidate_sha256']==plan['candidate_sha256'] and
-  sha(ROOT/'build/host-metal/host-metal-originals')==provenance['process_sha256'] and sha(ROOT/'kits/sheng/HostMetalDiagnostic.mm')==provenance['source_sha256'],'Exact actual host executable, diagnostic source and report provenance')
+  sha(ROOT/'build/host-metal/host-metal-originals')==provenance['process_sha256'] and sha(ROOT/'kits/komodo/HostMetalDiagnostic.mm')==provenance['source_sha256'],'Exact actual host executable, diagnostic source and report provenance')
  for name,digest in provenance['backend_sources'].items():require(sha(ROOT/name)==digest,'Actual host backend source: '+name)
  require(host['host_device']=='Apple M1' and host['transport_healthy'] and host['session_finished'] and host['opened_sessions']==host['closed_sessions']==1 and
   not host['cpu_pixel_renderer'] and not host['adreno_execution'] and not host['guest_system_device_discovery'] and not host['original_desktop'] and

@@ -3,7 +3,7 @@
 from pathlib import Path
 import subprocess,hashlib,json
 root=Path(__file__).resolve().parents[1];out=root/'build/cpu-desktop/process-probe';out.mkdir(parents=True,exist_ok=True)
-s=(root/'kits/sheng/BootProcessProbe.c').read_text();body=s[s.index('char boot_process_rows'):]
+s=(root/'kits/komodo/BootProcessProbe.c').read_text();body=s[s.index('char boot_process_rows'):]
 prefix=r'''
 #include <stdint.h>
 #include <stdbool.h>

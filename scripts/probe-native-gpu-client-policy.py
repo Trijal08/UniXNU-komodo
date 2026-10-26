@@ -13,7 +13,7 @@ manifest=json.loads((out/'test-inputs.json').read_text())
 for name,digest in manifest['sources'].items():
  if sha(ROOT/name)!=digest:raise SystemExit('Exact actual instrument source required: '+name)
 host=ROOT/'build/host-metal/host-metal-originals';qualification=json.loads((host.parent/'qualification.json').read_text())
-if sha(host)!=qualification['process_sha256'] or sha(ROOT/'kits/sheng/HostMetalDiagnostic.mm')!=qualification['source_sha256']:raise SystemExit('Exact actual host diagnostic required')
+if sha(host)!=qualification['process_sha256'] or sha(ROOT/'kits/komodo/HostMetalDiagnostic.mm')!=qualification['source_sha256']:raise SystemExit('Exact actual host diagnostic required')
 for name,digest in qualification['backend_sources'].items():
  if sha(ROOT/name)!=digest:raise SystemExit('Exact actual host backend required: '+name)
 base=a.candidate_base.resolve();plan=json.loads(base.with_suffix('.json').read_text())

@@ -46,7 +46,7 @@ require(packet[7:9]==(0,0),'Actual first drawable ID and zero presentedTime; no 
 b=d['native_gpu_broker'];require(b['stage']==3 and b['status']==0 and b['clients']==b['closed']==1 and not b['active'] and b['requests']>=138 and b['reply_bytes']>=142234 and not b['failures'] and b['refusals']==4,'Actual private session closes, exact GPU transport accounting')
 c=b['actual_cpu_contexts'];require(len(c)==1 and c[0]['pid']==1 and c[0]['native_cpu_4k_accepted'] and int(c[0]['TCR_EL1'],16)==0x22a51a251a and int(c[0]['SCTLR_EL1'],16)&1 and c[0]['task']==d['actual_process']['task'],'Actual active client CPU registers/task, independent of GPU SMMU')
 require(provenance['host_exit']==0 and provenance['report_sha256']==sha(folder/'host-enabled-report.json') and provenance['candidate_sha256']==plan['candidate_sha256'] and
- sha(ROOT/'build/host-metal/host-metal-originals')==provenance['process_sha256'] and sha(ROOT/'kits/sheng/HostMetalDiagnostic.mm')==provenance['source_sha256'],'Exact actual host executable, source and report provenance')
+ sha(ROOT/'build/host-metal/host-metal-originals')==provenance['process_sha256'] and sha(ROOT/'kits/komodo/HostMetalDiagnostic.mm')==provenance['source_sha256'],'Exact actual host executable, source and report provenance')
 for name,digest in provenance['backend_sources'].items():require(sha(ROOT/name)==digest,'Exact host backend source: '+name)
 require(host['host_device']=='Apple M1' and host['transport_healthy'] and host['session_finished'] and host['opened_sessions']==host['closed_sessions']==1 and
  not host['cpu_pixel_renderer'] and not host['adreno_execution'] and not host['guest_system_device_discovery'] and not host['original_desktop'] and

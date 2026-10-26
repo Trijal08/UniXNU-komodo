@@ -11,7 +11,7 @@ ROOT=Path(__file__).resolve().parents[1];OUT=ROOT/'build/air-library-native-test
 OUT.mkdir(parents=True,exist_ok=True)
 def run(cmd):return subprocess.run([str(v) for v in cmd],check=True,timeout=60)
 def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
-kit=ROOT/'kits/AirNir';source=ROOT/'kits/sheng/AirLibraryNativeTests.c';exe=OUT/'air-native'
+kit=ROOT/'kits/AirNir';source=ROOT/'kits/komodo/AirLibraryNativeTests.c';exe=OUT/'air-native'
 sdk=subprocess.check_output(['xcrun','--sdk','iphoneos','--show-sdk-path'],text=True).strip()
 run(['xcrun','clang','-target','arm64-apple-ios17.0','-isysroot',sdk,'-std=c11','-O2','-Wall','-Wextra','-Werror',
      '-Wno-deprecated-declarations','-fstack-protector-strong','-I',kit,source,kit/'Library.c','-o',exe])

@@ -3,7 +3,7 @@
 import hashlib,json,subprocess
 from pathlib import Path
 root=Path(__file__).resolve().parents[1];out=root/'build/cpu-desktop/fault-probe';out.mkdir(parents=True,exist_ok=True)
-s=(root/'kits/sheng/BootFaultProbe.c').read_text();body=s[s.index('struct boot_fault_record'):s.index('// REASON-SCAN')]
+s=(root/'kits/komodo/BootFaultProbe.c').read_text();body=s[s.index('struct boot_fault_record'):s.index('// REASON-SCAN')]
 prefix=r'''
 #include <stdint.h>
 #include <stdio.h>

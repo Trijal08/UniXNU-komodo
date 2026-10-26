@@ -18,7 +18,7 @@ OUT.mkdir(parents=True,exist_ok=True)
 def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def run(cmd):return subprocess.run([str(v) for v in cmd],check=True,timeout=60)
 sdk=subprocess.check_output(['xcrun','--sdk','iphoneos','--show-sdk-path'],text=True).strip()
-source=ROOT/('kits/sheng/FramebufferGeometryDiagnostic.cpp' if args.framebuffer_geometry else 'kits/sheng/FramebufferPowerDiagnostic.cpp' if args.framebuffer_power else 'kits/sheng/FramebufferProtocolDiagnostic.cpp' if (args.framebuffer_protocol or args.framebuffer_power or args.framebuffer_geometry) else 'kits/sheng/DisplayEnvironmentDiagnostic.cpp');exe=OUT/'air-native'
+source=ROOT/('kits/komodo/FramebufferGeometryDiagnostic.cpp' if args.framebuffer_geometry else 'kits/komodo/FramebufferPowerDiagnostic.cpp' if args.framebuffer_power else 'kits/komodo/FramebufferProtocolDiagnostic.cpp' if (args.framebuffer_protocol or args.framebuffer_power or args.framebuffer_geometry) else 'kits/komodo/DisplayEnvironmentDiagnostic.cpp');exe=OUT/'air-native'
 run(['xcrun','clang++','-target','arm64-apple-ios17.0','-isysroot',sdk,'-std=c++17','-O2','-g',
      '-Wall','-Wextra','-Werror','-fstack-protector-strong','-DFRAMEBUFFER_PROTOCOL_EMPTY_END='+str(int(args.empty_end)),source,'-framework','CoreFoundation',*(['-framework','IOSurface'] if args.framebuffer_geometry else []),'-o',exe])
 run(['codesign','--force','--sign','-','--pagesize','4096','--identifier','org.blu-sharky.'+kind,exe])

@@ -2,6 +2,7 @@
 """Build the opt-in board diagnostic against this source kernel's actual ABI."""
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 
@@ -9,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'build/boot-progress'
 OUT.mkdir(parents=True, exist_ok=True)
 record = json.loads((ROOT / 'build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/osfmk/DEVELOPMENT/startup.o.json').read_text().strip().rstrip(','))
-source = ROOT / 'kits/sheng/BootProgress.c'
+source = ROOT / 'kits/komodo/BootProgress.c'
 obj = OUT / 'BootProgress.o'
 command = []
 args = record['arguments']
@@ -29,16 +30,16 @@ while i < len(args):
     elif not arg.startswith(('-W', '-DXNU_BOOT_PROGRESS=')):
         command.append(arg)
     i += 1
-command += ['-DXNU_BOOT_PROGRESS=1', '-mgeneral-regs-only', '-Wall', '-Wextra', '-Werror',
+command += ['-DXNU_BOOT_PROGRESS=1', '-mgeneral-regs-only', '-Wall', '-Wextra', '-Werror', *[a for a in args if a.startswith('-Wno-')], '-Wno-unknown-warning-option',
             '-I', str(ROOT / '.cache/xnu-work/osfmk'),
-            '-I', str(ROOT / 'uefi-sheng/Silicon/Silicium/SiliciumPkg/Library/FrameBufferSerialPortLib')]
+            '-I', str(Path(os.environ.get('UNIXNU_UEFI') or ROOT / 'uefi-komodo') / 'Silicon/Silicium/SiliciumPkg/Library/FrameBufferSerialPortLib')]
 subprocess.run(command, cwd=record['directory'], check=True, timeout=90)
 (OUT / 'compile-command.json').write_text(json.dumps(command,indent=2)+'\n')
-fault_source = ROOT / 'kits/sheng/BootFaultProbe.c'
+fault_source = ROOT / 'kits/komodo/BootFaultProbe.c'
 fault_obj = OUT / 'BootFaultProbe.o'
 fault_command = [str(fault_source) if arg == str(source) else str(fault_obj) if arg == str(obj) else arg for arg in command]
 subprocess.run(fault_command, cwd=record['directory'], check=True, timeout=90)
-policy_source = ROOT / 'kits/sheng/BootWatchdogPolicy.c'
+policy_source = ROOT / 'kits/komodo/BootWatchdogPolicy.c'
 policy_obj = OUT / 'BootWatchdogPolicy.o'
 policy_record = json.loads((ROOT / 'build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/bsd/DEVELOPMENT/kern_exec.o.json').read_text().strip().rstrip(','))
 policy_command = []
@@ -53,10 +54,10 @@ while j < len(policy_args):
         j += 1
     elif arg == '-Xclang' and policy_args[j+1].startswith('-W'):
         j += 1
-    elif not arg.startswith('-W'):
+    elif arg.startswith('-Wno-') or not arg.startswith('-W'):
         policy_command.append(arg)
     j += 1
-policy_command += ['-mgeneral-regs-only', '-Wall', '-Wextra', '-Werror']
+policy_command += ['-mgeneral-regs-only', '-Wall', '-Wextra', '-Werror', *[a for a in policy_args if a.startswith('-Wno-')], '-Wno-unknown-warning-option']
 subprocess.run(policy_command, cwd=policy_record['directory'], check=True, timeout=90)
 # The diagnostic file export (BootLog.c's sheng-diag-export) reads files through the VFS: the same BSD-side flags.
 diag_source = ROOT / 'kits/sheng/BootDiagExport.c'

@@ -84,7 +84,7 @@ for denied_case in (denied,container):
     policies=denied_case['registered_mac_policies'];require(policies['read_only'] and any(p['name']=='Sandbox' for p in policies['policies']) and any(p['name']=='AMFI' for p in policies['policies']),'Actual original Sandbox and AMFI remain registered')
 host=load(ROOT/'build/offline-metal-processes/host-cpu-contexts-report.json');ops=host['operations']
 host_build=load(ROOT/'build/host-metal/qualification.json')
-require(sha(ROOT/'build/host-metal/host-metal-originals')==host_build['process_sha256'] and sha(ROOT/'kits/sheng/HostMetalDiagnostic.mm')==host_build['source_sha256'],'Exact actual host process and loader')
+require(sha(ROOT/'build/host-metal/host-metal-originals')==host_build['process_sha256'] and sha(ROOT/'kits/komodo/HostMetalDiagnostic.mm')==host_build['source_sha256'],'Exact actual host process and loader')
 for name,digest in host_build['backend_sources'].items():require(sha(ROOT/name)==digest,'Exact compiled host dependency '+name)
 require(host['host_device']=='Apple M1' and host['isolated_sessions'] and host['opened_sessions']==host['closed_sessions']==2 and
         not host['cpu_pixel_renderer'] and not host['guest_system_device_discovery'] and not host['adreno_execution'] and not host['original_desktop'] and

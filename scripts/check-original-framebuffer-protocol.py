@@ -22,7 +22,7 @@ for empty in (False, True):
     path = ROOT / ('build/darwinboot-owner-hvf-legacy-display-start-scale-' +
                    ('empty-protocol' if empty else 'protocol') + '/gdb-stop.json')
     d = json.loads(path.read_text())
-    require(sha(ROOT / 'kits/sheng/FramebufferProtocolDiagnostic.cpp') == build['source_sha256'] and
+    require(sha(ROOT / 'kits/komodo/FramebufferProtocolDiagnostic.cpp') == build['source_sha256'] and
             sha(out / 'air-native') == build['process_sha256'] == data['process_sha256'] and
             sha(out / 'test-inputs.json') == build['manifest_sha256'] == data['manifest_sha256'] and
             manifest['framebuffer_protocol'] and manifest['empty_transaction_end'] == empty,

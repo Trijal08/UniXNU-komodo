@@ -3,7 +3,7 @@
 from pathlib import Path
 import subprocess
 root=Path(__file__).resolve().parents[1];out=root/'build/cpu-desktop/diag-resume';out.mkdir(parents=True,exist_ok=True)
-s=(root/'kits/sheng/BootProgress.c').read_text()
+s=(root/'kits/komodo/BootProgress.c').read_text()
 body=s[s.index('static void refresh('):s.index('\nstatic void pulse_monitor(')] if '\nstatic void pulse_monitor(' in s else None
 body=s[s.index('static void refresh('):s.index('\n}\n',s.index('static void refresh('))+3]
 prefix=r'''

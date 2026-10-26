@@ -220,7 +220,7 @@ for line, text in enumerate(lines):
                 at = (height // 8 + 8 + line * 42 + y) * rowbytes + (column * 18 + x) * 4
                 actual = struct.unpack_from('<I', pixels, at)[0]
                 assert actual == (0xffffffff if on else 0), (line, column, x, y)
-# The board's banner copy of the message (kits/sheng/BootProgress.c): the formatted text only, newlines as spaces, NUL-terminated.
+# The board's banner copy of the message (kits/komodo/BootProgress.c): the formatted text only, newlines as spaces, NUL-terminated.
 copied = None
 if '_boot_progress_panic_text' in names:
     raw = (OUT / 'panic-text.bin').read_bytes()

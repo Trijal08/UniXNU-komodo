@@ -117,9 +117,9 @@ for fixed in (False, True):
         if fixed:
             return (root / name).read_text()
         return subprocess.check_output(['git', 'show', '981989d:' + name], cwd=root, text=True, timeout=10)
-    probe = source('kits/sheng/BootProcessProbe.c')
+    probe = source('kits/komodo/BootProcessProbe.c')
     probe = probe[probe.index('char boot_process_rows'):]
-    progress = source('kits/sheng/BootProgress.c')
+    progress = source('kits/komodo/BootProgress.c')
     monitor = progress[progress.index('static void monitor('):progress.index('\nvoid boot_progress_start(')]
     c = out / ('fixed.c' if fixed else 'baseline.c')
     exe = c.with_suffix('')

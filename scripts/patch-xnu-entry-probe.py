@@ -192,7 +192,7 @@ def assemble_c(source, va, workdir, symbols):
                 for base, size, _, _ in SEGMENTS):
             raise SystemExit(f'Missing or invalid diagnostic symbol {name}')
         definitions.append(f'-D{macro}={address:#x}UL')
-    # Optional: the board's banner buffer for the panic message (kits/sheng/BootProgress.c); kernels without it get 0 (no copy).
+    # Optional: the board's banner buffer for the panic message (kits/komodo/BootProgress.c); kernels without it get 0 (no copy).
     text = symbols.get('_boot_progress_panic_text')
     if text is not None:
         if not any(base <= text and text + 256 <= base + size for base, size, _, _ in SEGMENTS):

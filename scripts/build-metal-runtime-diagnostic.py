@@ -23,7 +23,7 @@ for kind in ('device','metaclass'):
 text+='};\n'
 (OUT/'MetalRuntimeDiagnosticInputs.h').write_text(text)
 sdk=subprocess.check_output(['xcrun','--sdk','iphoneos','--show-sdk-path'],text=True).strip()
-source=ROOT/'kits/sheng/MetalRuntimeDiagnostic.cpp';exe=OUT/'air-native'
+source=ROOT/'kits/komodo/MetalRuntimeDiagnostic.cpp';exe=OUT/'air-native'
 # Reuse the existing explicit offline init slot. This executable is the Metal
 # observer, independently signed and reported; it is not the AIR compiler.
 run(['xcrun','clang++','-target','arm64-apple-ios17.0','-isysroot',sdk,'-O2','-g',

@@ -62,7 +62,7 @@ require(v[:7]==(0x46424745,1,4096,4096,1,1,0) and v[7] and v[8] and
         v[9:]==(0,1,0,0xe00002c2,799,800,1) and l['swap_validation_calls']==1 and
         l['swap_validation_result']==0 and l['swap_validation_reason']==3,'Actual unsupported 799-to-800 source geometry is refused')
 own=ROOT/'build/framebuffer-geometry-diagnostic';b=load(own/'build-report.json');data=load(own/'data-report.json')
-require(sha(ROOT/'kits/sheng/FramebufferGeometryDiagnostic.cpp')==b['source_sha256'] and
+require(sha(ROOT/'kits/komodo/FramebufferGeometryDiagnostic.cpp')==b['source_sha256'] and
         sha(own/'air-native')==b['process_sha256']==data['process_sha256'] and
         sha(own/'compiler-data-32.cdr')==data['sha256']==negative['scratch_data']['actual_seed_sha256'] and
         sha(own/'offline-trust.bundle')==b['trust_bundle_sha256']==negative['trust_cache_bundle_sha256'], 'Exact signed/staged negative geometry instrument')

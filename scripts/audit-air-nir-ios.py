@@ -52,7 +52,7 @@ build=json.loads((ROOT/'build/air-nir-ios/build-report.json').read_text())
 if args.diagnostic:
     instrument=json.loads((OUT/'build-report.json').read_text())
     require(sha(raw)==instrument['process_sha256'],'Exact signed instrument identity')
-    require(sha((ROOT/'kits/sheng/AirNirDiagnostic.cpp').read_bytes())==instrument['source_sha256'],'Exact diagnostic source')
+    require(sha((ROOT/'kits/komodo/AirNirDiagnostic.cpp').read_bytes())==instrument['source_sha256'],'Exact diagnostic source')
 else:require(sha(raw)==build['executable_sha256'] and build['target']=='arm64-apple-ios17.0','Exact native compiler build identity')
 for name,digest in build['kit_sources'].items():require(sha((ROOT/'kits/AirNir'/name).read_bytes())==digest,'Native compiler source identity')
 loads=[]

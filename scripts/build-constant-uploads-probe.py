@@ -10,7 +10,7 @@ out.mkdir(parents=True, exist_ok=True)
 record = json.loads((ROOT / 'build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/osfmk/DEVELOPMENT/vm_kern.o.json').read_text().strip().rstrip(','))
 objects = []
 source_hashes = {}
-for source in (ROOT / 'kits/AirNir/ConstantUploads.c', ROOT / 'kits/sheng/ConstantUploadsProbe.c'):
+for source in (ROOT / 'kits/AirNir/ConstantUploads.c', ROOT / 'kits/komodo/ConstantUploadsProbe.c'):
     source_hashes[str(source.relative_to(ROOT))] = hashlib.sha256(source.read_bytes()).hexdigest()
     obj = out / (source.stem + '.o')
     command = []

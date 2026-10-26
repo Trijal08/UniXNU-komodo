@@ -19,7 +19,7 @@ compile=next(shlex.split(x) for x in commands if shlex.split(x)[-1]==str(ROOT/'k
 for flag in ('-MQ','-MF'):
  i=compile.index(flag);del compile[i:i+2]
 compile=[x for x in compile if x not in ('-c','-MD')]
-exe=OUT/'air-native';source=ROOT/'kits/sheng/AdrenoVPCNativeTests.c'
+exe=OUT/'air-native';source=ROOT/'kits/komodo/AdrenoVPCNativeTests.c'
 compile[compile.index('-o')+1]=str(exe);compile[-1]=str(source)
 compile[1:1]=['-O2','-Wall','-Wextra','-Werror','-Wno-unused-parameter','-DMESA_REFERENCE','-DFD_NO_DEPRECATED_PACK','-I'+str(KIT),'-I'+str(HEADERS)]
 compile += [str(KIT/'AdrenoVPC.c'),str(KIT/'AdrenoPM4.c')];run(compile,cwd=BUILD)

@@ -118,7 +118,7 @@ for case in ('positive','missing-device','default-off'):
         else:require(d['original_launchd_main_executed'] and d['followed_main_entry']['first_instruction_completed'],'Default-off genuine original launchd main')
     observations[case]=dict(checkpoint_sha256=sha(path),actual_tcr=r['TCR_EL1'],exit=exit_code,console=g)
 host=json.loads((OUT/'host-report.json').read_text());host_build=json.loads((ROOT/'build/host-metal/qualification.json').read_text())
-require(host_build['source_sha256']==sha(ROOT/'kits/sheng/HostMetalDiagnostic.mm')
+require(host_build['source_sha256']==sha(ROOT/'kits/komodo/HostMetalDiagnostic.mm')
         and host_build['process_sha256']==sha(ROOT/'build/host-metal/host-metal-originals'),'Exact observed real host GPU source/process')
 require(host['actual_gpu_pixel_bytes_sent']==32768 and not host['cpu_pixel_renderer'] and not host['guest_metal_device']
         and not host['adreno_execution'] and not host['original_desktop'],'Actual host-GPU transport scope')

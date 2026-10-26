@@ -235,7 +235,7 @@ if '1 lower-region fixed-address GMU payload mapping and unmap, 1 pre-allocation
 # GMU cold-start config assembled from the validated view and payload layout.
 gmuconfig_test = out / 'test-gmuconfig'
 subprocess.run(['xcrun', 'clang++', '-std=c++23', *host_flags, '-I', includes,
-                '-I', kit / 'tests', '-I', kit, '-I', smmu, '-I', ROOT / 'kits/sheng',
+                '-I', kit / 'tests', '-I', kit, '-I', smmu, '-I', ROOT / 'kits/komodo',
                 '-I', ROOT / 'kits/AdrenoFirmware', '-I', out,
                 kit / 'NativeAdrenoMemory.cpp', kit / 'NativeAdrenoSmmuMemory.cpp',
                 kit / 'NativeAdrenoVm.cpp', kit / 'NativeAdrenoGmuMemory.cpp',
@@ -250,7 +250,7 @@ if '1 assembled GMU config, 7 argument refusals and 1 non-startup-profile refusa
 # Five-window GMU MMIO adapter and time/hash services over fake windows.
 gmuplatform_test = out / 'test-gmuplatform'
 subprocess.run(['xcrun', 'clang++', '-std=c++23', *host_flags, '-I', includes,
-                '-I', kit / 'tests', '-I', kit, '-I', ROOT / 'kits/sheng',
+                '-I', kit / 'tests', '-I', kit, '-I', ROOT / 'kits/komodo',
                 '-I', ROOT / 'kits/AdrenoFirmware', '-I', out,
                 kit / 'NativeAdrenoSha256.cpp', kit / 'NativeAdrenoGmuPlatform.cpp',
                 kit / 'tests/test_gmuplatform.cpp', '-o', gmuplatform_test],
@@ -329,7 +329,7 @@ while index < len(service_recipe['arguments']):
     index += 1
 service_xnu = ROOT / '.cache/xnu-work'
 service_cmd += ['-I', str(service_xnu / 'osfmk'), '-I', str(kit), '-I', str(smmu),
-                '-I', str(ROOT / 'kits/AdrenoPM4'), '-I', str(ROOT / 'kits/sheng'),
+                '-I', str(ROOT / 'kits/AdrenoPM4'), '-I', str(ROOT / 'kits/komodo'),
                 '-I', str(ROOT / 'kits/AdrenoFirmware'),
                 *(['-I', str(ROOT / 'build/sheng-gmu')] if (ROOT / 'build/sheng-gmu/ShengGmuSource.h').exists() else []),
                 *(['-I', str(ROOT / 'build/sheng-gmu')] if (ROOT / 'build/sheng-gmu/ShengGmuSource.h').exists() else []),
@@ -582,7 +582,7 @@ base += ['-Wall', '-Wextra', '-Werror', '-Wno-unused-parameter',
          '-Wno-c99-designator', '-Wno-reorder-init-list',
          '-Wno-deprecated-enum-enum-conversion', '-Wno-unnecessary-virtual-specifier',
          '-mgeneral-regs-only', '-I', str(xnu / 'osfmk'), '-I', str(smmu),
-         '-I', str(ROOT / 'kits/AdrenoPM4'), '-I', str(ROOT / 'kits/sheng'),
+         '-I', str(ROOT / 'kits/AdrenoPM4'), '-I', str(ROOT / 'kits/komodo'),
          '-I', str(ROOT / 'kits/AdrenoFirmware')]
 objects = []
 imports = {}

@@ -15,7 +15,7 @@ b=json.loads((OUT/'build-report.json').read_text());inputs=json.loads((OUT/'test
 require(sha(OUT/'air-native')==b['process_sha256']==data['process_sha256'] and sha(OUT/'test-inputs.json')==b['manifest_sha256']==data['manifest_sha256'],'Exact signed native test and complete source/input graph')
 require(inputs['kit_revision']=='da7f99e572aca992f5fa1e6b0025c86c622d96c5' and inputs['positive_profiles']==12 and inputs['transactional_refusals']==4456,'Exact qualified generic suite')
 for name,digest in inputs['sources'].items():require(sha(ROOT/name)==digest,'Native test/reader sources unchanged')
-require(sha(ROOT/'kits/sheng/AirLibraryNativeTests.c')==b['source_sha256'],'Exact active-assertion native wrapper')
+require(sha(ROOT/'kits/komodo/AirLibraryNativeTests.c')==b['source_sha256'],'Exact active-assertion native wrapper')
 raw=(OUT/'air-native').read_bytes();m=macho(raw)
 require(m['kind']==2 and [struct.unpack_from('<II',raw,p+8) for cmd,p,_ in m['commands'] if cmd==0x32]==[(2,0x110000)] and b['code_signature_page_bytes']==4096,'Actual ordinary ARM64/iOS17 image and own 4K CodeDirectory')
 bundle=(OUT/'offline-trust.bundle').read_bytes();offsets=struct.unpack_from('<3I',bundle,4);original=(ROOT/'build/original-static-system-trust/original-static-system.bundle').read_bytes();old=struct.unpack_from('<2I',original,4)

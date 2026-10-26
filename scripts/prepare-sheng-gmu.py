@@ -10,7 +10,7 @@ def prepare():
  sources+=['drivers/gpu/drm/msm/registers/adreno/'+s for s in ['a6xx.xml','a6xx_gmu.xml']]
  for name in sources:
   if sha(cache/name)!=pins['linux']['files'][name]['sha256']:raise SystemExit('Pinned source differs: '+name)
- subprocess.run([sys.executable,ROOT/'kits/sheng/audit-adreno-platform.py'],check=True,timeout=30)
+ subprocess.run([sys.executable,ROOT/'kits/komodo/audit-adreno-platform.py'],check=True,timeout=30)
  platform=json.loads((ROOT/'build/adreno-firmware/sheng-platform.json').read_text());dtb=ROOT/'build/adreno-firmware/sheng.dtb'
  ranges={}
  for kind in ['gpu','gmu']:

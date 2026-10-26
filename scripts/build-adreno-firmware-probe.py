@@ -27,7 +27,7 @@ for name, path in (('sqe', sqe), ('zap', zap)):
     'static const uint8_t expected_gmu_sha256[32] = {' + ','.join(hex(b) for b in digest) + '};\n')
 record = json.loads((ROOT / 'build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/bsd/DEVELOPMENT/bsd_init.o.json').read_text().strip().rstrip(','))
 objects = []
-for source in (ROOT / 'kits/AdrenoFirmware/AdrenoFirmware.c', ROOT / 'kits/sheng/AdrenoFirmwareProbe.c'):
+for source in (ROOT / 'kits/AdrenoFirmware/AdrenoFirmware.c', ROOT / 'kits/komodo/AdrenoFirmwareProbe.c'):
     obj = out / (source.stem + '.o')
     command = []
     i = 0

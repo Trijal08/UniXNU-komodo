@@ -3,7 +3,7 @@
 from pathlib import Path
 import hashlib,json,subprocess
 root=Path(__file__).resolve().parents[1];out=root/'build/cpu-desktop/lifecycle';out.mkdir(parents=True,exist_ok=True)
-s=(root/'kits/sheng/BootProgress.c').read_text();body=s[s.index('void boot_progress_process_stage('):s.index('void boot_progress_irq(')]
+s=(root/'kits/komodo/BootProgress.c').read_text();body=s[s.index('void boot_progress_process_stage('):s.index('void boot_progress_irq(')]
 prefix=r'''
 #include <stdint.h>
 #include <stdio.h>
@@ -41,6 +41,6 @@ int main(void){
 }
 '''
 (out/'test.c').write_text(prefix+body+main)
-subprocess.run(['clang','-std=c11','-Wall','-Wextra','-Werror','-Wno-unused-function','-O1','-g','-fsanitize=address,undefined','-I',str(root/'kits/sheng'),str(out/'test.c'),'-o',str(out/'test')],check=True,timeout=45)
+subprocess.run(['clang','-std=c11','-Wall','-Wextra','-Werror','-Wno-unused-function','-O1','-g','-fsanitize=address,undefined','-I',str(root/'kits/komodo'),str(out/'test.c'),'-o',str(out/'test')],check=True,timeout=45)
 r=subprocess.run([str(out/'test')],check=True,capture_output=True,text=True,timeout=10);print(r.stdout,end='')
 (out/'report.json').write_text(json.dumps(dict(passed=True,helper_sha256=hashlib.sha256(body.encode()).hexdigest(),clock_render_dependencies_stubbed=True,hardware_exit_causes_observed=False),indent=2)+'\n')

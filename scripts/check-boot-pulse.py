@@ -13,7 +13,7 @@ import subprocess
 root=Path(__file__).resolve().parents[1]
 assert platform.system()=='Darwin' and platform.machine()=='arm64'
 out=root/'build/cpu-desktop/pulse-host';out.mkdir(parents=True,exist_ok=True)
-source=(root/'kits/sheng/BootProgress.c').read_text()
+source=(root/'kits/komodo/BootProgress.c').read_text()
 handoff=source[source.index('int boot_progress_active('):source.index('\nvoid boot_progress_cancel_scanout(')]
 worker=source[source.index('static void pulse_monitor('):source.index('\nstatic void process_monitor(')]
 prefix=r'''
@@ -92,7 +92,7 @@ int main(void){
 '''
 c=out/'test.c';exe=out/'test';c.write_text(prefix+handoff+worker+main)
 subprocess.run(['clang','-std=c11','-O1','-g','-Wall','-Wextra','-Werror','-Wno-unused-function',
- '-fsanitize=address,undefined','-I'+str(root/'kits/sheng'),
+ '-fsanitize=address,undefined','-I'+str(root/'kits/komodo'),
  '-I'+str(root/'uefi-sheng/Silicon/Silicium/SiliciumPkg/Library/FrameBufferSerialPortLib'),
  str(c),'-o',str(exe)],check=True,timeout=30)
 r=subprocess.run([str(exe)],capture_output=True,text=True,check=True,timeout=15);print(r.stdout,end='')

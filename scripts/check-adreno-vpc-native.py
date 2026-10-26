@@ -34,7 +34,7 @@ require(inputs['kit_revision'] == '18a3e55192da680b108c973ecde5b8d41f608bee'
         'Exact reference suite and kit revision')
 for name, digest in inputs['sources'].items():
     require(sha(ROOT / name) == digest, 'Actual native test and encoder sources unchanged')
-require(sha(ROOT / 'kits/sheng/AdrenoVPCNativeTests.c') == b['source_sha256'],
+require(sha(ROOT / 'kits/komodo/AdrenoVPCNativeTests.c') == b['source_sha256'],
         'Exact wrapper with active assertions and both user page-size queries')
 require(sha(ROOT / 'scripts/data/adreno-vpc-inputs.json') == inputs['primary_reference_manifest_sha256']
         and json.loads((ROOT / 'scripts/data/adreno-vpc-inputs.json').read_text()) == inputs['primary_reference'],

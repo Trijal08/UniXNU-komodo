@@ -54,7 +54,7 @@ for p in selected:
         expected.append(dict(role=role,index=index,pc=thread['user_pc'],lr=thread['user_lr'],frames=[f['lr'] for f in frames[:8]]))
 source += 'fprintf(stderr,"threads=%u groups=%u\\n",groups.threads,groups.count);return 0;}\n'
 c = args.output/'replay.c';exe=args.output/'replay';c.write_text(source)
-subprocess.run(['clang','-std=c11','-Wall','-Wextra','-Werror','-Wno-unused-function','-fsanitize=address,undefined','-I',str(root/'kits/sheng'),str(c),'-o',str(exe)],check=True,timeout=45)
+subprocess.run(['clang','-std=c11','-Wall','-Wextra','-Werror','-Wno-unused-function','-fsanitize=address,undefined','-I',str(root/'kits/komodo'),str(c),'-o',str(exe)],check=True,timeout=45)
 r=subprocess.run([str(exe)],capture_output=True,text=True,check=True,timeout=15)
 (args.output/'encoded.txt').write_text(r.stdout)
 rows=decoder.decode(r.stdout)

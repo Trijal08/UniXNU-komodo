@@ -10,7 +10,7 @@ def require(v,s):
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 build=json.loads((OUT/'build-report.json').read_text());data=json.loads((OUT/'data-report.json').read_text())
 path=ROOT/'build/darwinboot-owner-hvf-legacy-display-start-scale-power/gdb-stop.json';d=json.loads(path.read_text())
-require(sha(ROOT/'kits/sheng/FramebufferPowerDiagnostic.cpp')==build['source_sha256'] and
+require(sha(ROOT/'kits/komodo/FramebufferPowerDiagnostic.cpp')==build['source_sha256'] and
         sha(OUT/'air-native')==build['process_sha256']==data['process_sha256'] and
         sha(OUT/'test-inputs.json')==build['manifest_sha256']==data['manifest_sha256'], 'Exact own source, signed process and manifest')
 require(sha(OUT/'compiler-data-32.cdr')==data['sha256']==d['scratch_data']['actual_seed_sha256'] and

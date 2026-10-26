@@ -9,7 +9,7 @@ root=Path(__file__).resolve().parents[1]
 out=root/'build/ufs-root-diagnostics/progress/host'
 out.mkdir(parents=True,exist_ok=True)
 (out/'report.json').unlink(missing_ok=True)
-source=root/'kits/sheng/BootProgressTests.c'
+source=root/'kits/komodo/BootProgressTests.c'
 subprocess.run(['clang','-std=c11','-O1','-g','-Wall','-Wextra','-Werror','-fsanitize=address,undefined',
   '-I'+str(root/'uefi-sheng/Silicon/Silicium/SiliciumPkg/Library/FrameBufferSerialPortLib'),
   str(source),'-o',str(out/'test')],check=True,timeout=60)

@@ -14,7 +14,7 @@ ROOT=Path(__file__).resolve().parents[1]
 parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--library-input',action='store_true');parser.add_argument('--fragment-inputs',action='store_true');args=parser.parse_args()
 if args.fragment_inputs and not args.library_input:parser.error('Fragment inputs use the actual original library path')
 BUILD=ROOT/'build/mesa-ir3-ios';OUT=ROOT/('build/air-fragment-inputs-diagnostic' if args.fragment_inputs else 'build/air-library-diagnostic' if args.library_input else 'build/air-nir-diagnostic')
-source=ROOT/('kits/sheng/AirLibraryDiagnostic.cpp' if args.library_input else 'kits/sheng/AirNirDiagnostic.cpp')
+source=ROOT/('kits/komodo/AirLibraryDiagnostic.cpp' if args.library_input else 'kits/komodo/AirNirDiagnostic.cpp')
 OUT.mkdir(parents=True,exist_ok=True)
 def run(cmd,**kw):return subprocess.run([str(x) for x in cmd],check=True,timeout=180,**kw)
 manifest=ROOT/('scripts/data/native-air-fragment-inputs.json' if args.fragment_inputs else 'scripts/data/native-air-diagnostic-inputs.json')

@@ -5,7 +5,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def prepare():
- subprocess.run([sys.executable,ROOT/'kits/sheng/audit-adreno-platform.py'],check=True,timeout=30)
+ subprocess.run([sys.executable,ROOT/'kits/komodo/audit-adreno-platform.py'],check=True,timeout=30)
  pins=json.loads((ROOT/'scripts/data/adreno-inputs.json').read_text());platform=json.loads((ROOT/'build/adreno-firmware/sheng-platform.json').read_text())
  name='drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c';source=ROOT/'.cache/adreno-source'/name
  if sha(source)!=pins['linux']['files'][name]['sha256']:raise SystemExit('Qualcomm source mismatch')

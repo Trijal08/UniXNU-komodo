@@ -1,0 +1,46 @@
+# Stage 6 kernel: stage 5 plus the owner-root chain over the darwin partition. The verified-root probe links
+# the owner-signed policies of the OS and SystemOS windows (`unixnu build userdata`, then `unixnu build policies`),
+# NativeUfs serves only reads that verify against them, and the kernel roots on the signed OS volume. The Data
+# mount takes the seed of scripts/build-data-seed.py (komodo_defconfig is the full target).
+CONFIG_XNU_BUILD_ARCHIVES=y
+CONFIG_XNU_SOURCE_CORECRYPTO14=y
+CONFIG_XNU_SOURCE_PTHREAD=y
+CONFIG_XNU_ARM_DT_PLATFORM=y
+CONFIG_XNU_ARMCPU=y
+CONFIG_XNU_NATIVE_AES=y
+CONFIG_XNU_NATIVE_VIRTIO_BLOCK=y
+CONFIG_XNU_NATIVE_RAM_BLOCK=y
+CONFIG_XNU_TRUST_CACHE_RUNTIME=y
+CONFIG_XNU_SOURCE_MOCKFS=y
+CONFIG_XNU_NATIVE_CS_HASH_CACHE=y
+CONFIG_XNU_VERIFIED_ROOT_PROBE=y
+# The two-volume policy bundle (OS + SystemOS) that build-verified-root-probe.py --include-systemos writes.
+CONFIG_XNU_VERIFIED_ROOT_ARCHIVE="{tree}/build/verified-root-os-xnu-bundle/libVerifiedRootProbe.a"
+# The verified VirtIO block archive answers the owner-root kernel's native_verified_block_* queries.
+CONFIG_XNU_NATIVE_VIRTIO_BLOCK_ARCHIVE="{tree}/build/native-virtio-block-verified-bundle/libNativeVirtioBlock.a"
+CONFIG_XNU_OWNER_ROOT_AUDIT=y
+CONFIG_XNU_OWNER_ROOT_TRUST=y
+CONFIG_XNU_OWNER_CACHE_MOUNT=y
+CONFIG_XNU_OWNER_CACHE_STARTUP=y
+CONFIG_XNU_OWNER_BOOT_MANIFEST=y
+CONFIG_XNU_OWNER_DATA_MOUNT=y
+CONFIG_XNU_OWNER_UNION_SYSTEMOS=y
+CONFIG_XNU_DT_PANIC_REGION=y
+CONFIG_XNU_ZONE_PGZ_ALIGNMENT_PROBE=y
+CONFIG_XNU_NATIVE_ARCH_TIMER=y
+CONFIG_XNU_NATIVE_PAN=y
+CONFIG_XNU_BOOT_PROGRESS=y
+CONFIG_XNU_NATIVE_LEGACY_DISPLAY=y
+CONFIG_XNU_CRYPTO_BOOTSTRAP="prelinked"
+# NativeUfs with the Tensor host glue, owner-verified (board.toml archives); the boot progress layer requires it.
+CONFIG_XNU_NATIVE_UFS=y
+# CONFIG_XNU_NATIVE_ADRENO is not set
+# Original-ApplePMGR shim (package/ShengPlatformPower.cpp); board-neutral, required by the target AMFI.
+CONFIG_XNU_SHENG_PMGR=y
+# The Data seed's volume UUID (scripts/build-data-seed.py --volume-uuid; sheng used 18AB5557-DC2D-469B-8758-855E60F5B0DF).
+CONFIG_XNU_OWNER_DATA_VOLUME_UUID="EFC488D9-64E3-49A8-BD93-74BB04D5C0F4"
+# Link stubs for the diagnostics of drivers komodo does not link (scripts/build-komodo-linkstubs.py, one member per
+# symbol, so a real definition always wins).
+CONFIG_XNU_EXTRA_LD_ARCHIVES="{tree}/build/komodo-linkstubs/libkomodo-linkstubs.a"
+CONFIG_XNU_NATIVE_MOBILE_DISPLAY=n
+CONFIG_XNU_ARMVIRT_PLATFORM=n

@@ -9,7 +9,7 @@ out = ROOT / 'build/smmu4k-probe'
 out.mkdir(parents=True, exist_ok=True)
 record = json.loads((ROOT / 'build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/osfmk/DEVELOPMENT/vm_kern.o.json').read_text().strip().rstrip(','))
 objects = []
-for source in (ROOT / 'kits/ArmSmmu4K/ArmSmmu4K.c', ROOT / 'kits/sheng/ArmSmmu4KProbe.c'):
+for source in (ROOT / 'kits/ArmSmmu4K/ArmSmmu4K.c', ROOT / 'kits/komodo/ArmSmmu4KProbe.c'):
     obj = out / (source.stem + '.o')
     command = []
     i = 0

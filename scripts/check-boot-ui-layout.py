@@ -3,7 +3,7 @@
 import hashlib,json,subprocess
 from pathlib import Path
 root=Path(__file__).resolve().parents[1];out=root/'build/cpu-desktop/ui-layout';out.mkdir(parents=True,exist_ok=True)
-s=(root/'kits/sheng/BootProgress.c').read_text();body=s[s.index('  if(!__atomic_exchange_n(&exit_lock'):s.index('  if(&boot_process_rows)')]
+s=(root/'kits/komodo/BootProgress.c').read_text();body=s[s.index('  if(!__atomic_exchange_n(&exit_lock'):s.index('  if(&boot_process_rows)')]
 prefix=r'''
 #include <stdint.h>
 #include <stdio.h>
@@ -46,6 +46,6 @@ int main(void){
 }
 '''
 (out/'test.c').write_text(prefix+body+main)
-subprocess.run(['clang','-std=c11','-Wall','-Wextra','-Werror','-Wno-pointer-bool-conversion','-Wno-unused-function','-fsanitize=address,undefined','-I',str(root/'kits/sheng'),str(out/'test.c'),'-o',str(out/'test')],check=True,timeout=45)
+subprocess.run(['clang','-std=c11','-Wall','-Wextra','-Werror','-Wno-pointer-bool-conversion','-Wno-unused-function','-fsanitize=address,undefined','-I',str(root/'kits/komodo'),str(out/'test.c'),'-o',str(out/'test')],check=True,timeout=45)
 r=subprocess.run([str(out/'test')],text=True,capture_output=True,check=True,timeout=15);print(r.stdout,end='')
 (out/'report.json').write_text(json.dumps(dict(passed=True,layout_body_sha256=hashlib.sha256(body.encode()).hexdigest(),pixel_writes_substituted=True,hardware_flicker_fix_observed=False),indent=2)+'\n')

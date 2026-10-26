@@ -245,6 +245,11 @@ static void bar(unsigned row, const char *text, uint32_t color, uint32_t backgro
   if(row==47 && __atomic_load_n(&pulse.ready,__ATOMIC_ACQUIRE))return;
   bp_line_bg(&display,row,text,color,background);
 }
+// No drawing before the serial console works (PE_init_kprintf raises console_ready): the sink runs from arm_init,
+// before kprintf has an output function, and anything it printed there was a null call. in_putc marks a draw
+// reached from the console tee, where the sink must not print.
+static volatile unsigned console_ready, in_putc;
+void boot_progress_console_ready(void) { console_ready = 1; }
 static void draw(unsigned now) {
   const struct bp_core *visible=started ? &render_snapshot : &state;
   char b[BP_COLS];
@@ -600,15 +605,17 @@ void boot_progress_bind(uintptr_t base,unsigned w,unsigned h,unsigned rb,unsigne
     if(!__atomic_load_n(&pulse.ready,__ATOMIC_ACQUIRE))
       bp_panic_bind(&boot_progress_panic_vinfo,base,w,h,rb);
     bp_clear(&display);
-    draw(seconds());
+    if (console_ready) draw(seconds());
   }
   release();
+  kprintf("boot-progress: bind base=0x%llx %ux%u row=%u depth=%u -> %u (0 bound, 1 rejected, 2 display owned)\n",
+    (unsigned long long)base,w,h,rb,depth,bind_result);
 }
 void boot_progress_putc(char c) {
   if (!enabled || !take()) return;
   bp_char(&state,c);
   unsigned now=seconds();
-  if (!started && !state.frozen && c=='\n' && now!=last_draw) draw(now);
+  if (console_ready && !started && !state.frozen && c=='\n' && now!=last_draw) { in_putc=1; draw(now); in_putc=0; }
   release();
 }
 void boot_progress_stage(const char *text) {
@@ -621,7 +628,7 @@ void boot_progress_stage(const char *text) {
     text=stamped;
   }
   bp_stage(&state,text,now);
-  if (!started && !state.frozen) draw(now);
+  if (console_ready && !started && !state.frozen) draw(now);
   release();
 }
 void boot_progress_process_stage(int pid,const char *name,const char *text) {

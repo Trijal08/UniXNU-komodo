@@ -18,7 +18,7 @@ def require(v,why):
 def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 b=json.loads((OUT/'build-report.json').read_text());data=json.loads((OUT/'data-report.json').read_text())
 require(sha(OUT/'air-native')==b['process_sha256']==data['process_sha256'] and b['direct_original_library_input'],'Actual distinct direct-library process')
-require(sha(ROOT/'kits/sheng/AirLibraryDiagnostic.cpp')==b['source_sha256'] and sha(manifest)==b['manifest_sha256']==data['manifest_sha256'],'Exact source and shader manifest')
+require(sha(ROOT/'kits/komodo/AirLibraryDiagnostic.cpp')==b['source_sha256'] and sha(manifest)==b['manifest_sha256']==data['manifest_sha256'],'Exact source and shader manifest')
 require(b['native_compiler_build_report_sha256']==sha(OUT/'native-compiler-build-report.json'),'Exact linked native compiler build inputs')
 compiler=json.loads((OUT/'native-compiler-build-report.json').read_text())
 import subprocess

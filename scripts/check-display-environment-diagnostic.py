@@ -11,7 +11,7 @@ def require(value,reason):
 def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 build=json.loads((OUT/'build-report.json').read_text());data=json.loads((OUT/'data-report.json').read_text())
 path=ROOT/'build/darwinboot-owner-hvf-display-environment-final/gdb-stop.json';d=json.loads(path.read_text())
-require(sha(ROOT/'kits/sheng/DisplayEnvironmentDiagnostic.cpp')==build['source_sha256'] and
+require(sha(ROOT/'kits/komodo/DisplayEnvironmentDiagnostic.cpp')==build['source_sha256'] and
         sha(OUT/'air-native')==build['process_sha256']==data['process_sha256'] and
         sha(OUT/'test-inputs.json')==build['manifest_sha256']==data['manifest_sha256'],
         'Exact own query source, signed executable and staged input manifest')

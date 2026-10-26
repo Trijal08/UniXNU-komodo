@@ -58,7 +58,7 @@ for r in c:
 sessions={r['pid']:r['session'] for r in c};source=sessions[v[4]];peer=sessions[v[12]]
 require(d['native_gpu_shared_events']==dict(exports=1,imports=3 if a.cross_process else 2 if a.coding else 1,drops=1,refusals=2,tokens_live=0,ports=1),'Actual kernel OSObject/Mach capability lifetime, exact import/drop and no live token')
 require(provenance['host_exit']==0 and provenance['report_sha256']==sha(host_path) and provenance['candidate_sha256']==plan['candidate_sha256'] and
- sha(ROOT/'build/host-metal/host-metal-originals')==provenance['process_sha256'] and sha(ROOT/'kits/sheng/HostMetalDiagnostic.mm')==provenance['source_sha256'],'Exact executed host source/binary/report provenance')
+ sha(ROOT/'build/host-metal/host-metal-originals')==provenance['process_sha256'] and sha(ROOT/'kits/komodo/HostMetalDiagnostic.mm')==provenance['source_sha256'],'Exact executed host source/binary/report provenance')
 for name,digest in provenance['backend_sources'].items():require(sha(ROOT/name)==digest,'Exact host backend source: '+name)
 ops=host['operations'];require(host['host_device']=='Apple M1' and host['transport_healthy'] and host['session_finished'] and host['opened_sessions']==host['closed_sessions']==2 and
  not host['cpu_pixel_renderer'] and not host['adreno_execution'] and not host['guest_system_device_discovery'] and not host['original_desktop'] and not host['live_shared_exports'] and

@@ -13,7 +13,7 @@ module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 out,provenance=module.prepare();
 vspec=importlib.util.spec_from_file_location('votes',ROOT/'scripts/prepare-sheng-gmu-votes.py')
 vmodule=importlib.util.module_from_spec(vspec);vspec.loader.exec_module(vmodule);vmodule.prepare()
-kit=ROOT/'kits/AdrenoFirmware';board=ROOT/'kits/sheng'
+kit=ROOT/'kits/AdrenoFirmware';board=ROOT/'kits/komodo'
 votes_report=ROOT/'build/adreno-hfi-votes/report.json'
 try:
  evidence=json.loads(votes_report.read_text())

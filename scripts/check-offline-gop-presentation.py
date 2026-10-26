@@ -86,7 +86,7 @@ for method in ['8transfer','19clientMemoryForType','13presentAction']:
     method_checks.append(dict(symbol=name,bytes=len(expected),relocation_words=sorted(masked),masked_sha256=hashlib.sha256(expected).hexdigest()))
 
 host_build=read_json(ROOT/'build/host-metal/qualification.json')
-require(host_build['source_sha256']==sha(ROOT/'kits/sheng/HostMetalDiagnostic.mm') and host_build['process_sha256']==sha(ROOT/'build/host-metal/host-metal-originals'),'Exact actual host backend')
+require(host_build['source_sha256']==sha(ROOT/'kits/komodo/HostMetalDiagnostic.mm') and host_build['process_sha256']==sha(ROOT/'build/host-metal/host-metal-originals'),'Exact actual host backend')
 for name,digest in host_build['backend_sources'].items():require(sha(ROOT/name)==digest,'Exact host backend source')
 host=read_json(OUT/'host-report.json');ops=host['operations']
 require(host['host_device'] and not host['cpu_pixel_renderer'] and not host['guest_system_device_discovery'] and

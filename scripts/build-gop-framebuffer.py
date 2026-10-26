@@ -80,7 +80,7 @@ require(text(raw,parsed)==text(late_raw,late_parsed) and not any(s['name']=='__m
         'Only own initializer registration is deferred; own executable instructions unchanged')
 recipe=ROOT/'build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/iokit/DEVELOPMENT/IOPlatformExpert.cpo.json'
 r=json.loads(recipe.read_text().strip().rstrip(','));args=r['arguments'];cmd=[];i=0
-source=ROOT/'kits/sheng/MobileDisplayProviderProbe.cpp'
+source=ROOT/'kits/komodo/MobileDisplayProviderProbe.cpp'
 while i<len(args):
     v=args[i]
     if v==r['file']:cmd.append(str(source))
