@@ -124,7 +124,15 @@ ParseKernel (CONST UINT8 *Data, UINTN Size, KERNEL *Kernel)
   BOOLEAN  Executable;
 
   if ((Size < 32) || (U32 (Data) != 0xfeedfacf) || (U32 (Data + 4) != 0x100000c) ||
-      (U32 (Data + 8) != 0) || (U32 (Data + 12) != 2)) {
+      (U32 (Data + 12) != 2)) {
+    return EFI_UNSUPPORTED;
+  }
+  // Accept a thin arm64 or arm64e kernel. arm64 is cpusubtype 0 and arm64e is 2, carrying the
+  // pointer-authentication ABI version in the top byte of CPU_SUBTYPE_MASK, which is not part of the
+  // identity; UniXNU's own bundle check (UniXNULib/Kext.c) masks it off the same way. Loading an
+  // arm64e kernel asks nothing of the loader: it maps segments and enters, and the kernel programs
+  // its own PAC keys. Refusing subtype 2 here is what made a komodo entry return Unsupported.
+  if (((U32 (Data + 8) & 0x00ffffff) != 0) && ((U32 (Data + 8) & 0x00ffffff) != 2)) {
     return EFI_UNSUPPORTED;
   }
   if (U32 (Data + 20) > Size - 32) { return EFI_LOAD_ERROR; }
