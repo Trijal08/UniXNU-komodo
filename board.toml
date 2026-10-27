@@ -141,6 +141,10 @@ size_mib = 192
 loader = "payload"                  # DarwinBoot.efi ships in the payload, not the firmware volume
 title = "komodo iOS 26 first boot: iPhone18,2 23F84"
 dram_size = "0x80000000"
+# The panic screen and stage 3 of the entry probe do not both fit in the zero padding after the
+# kernel entry, so entry_probe_reset_delay stays out: stage 3 answered its question on 2026-10-26
+# (the phone reset on time, so the CPU gets through the 16 KiB MMU enable) and the screen is the
+# more useful of the two now that the console works.
 panic_screen = true
 kernel_args = ["-v", "serial=3", "debug=0x14e", "native-ufs-probe=16"]
 # The bundle of the StaticTrustCache and Cryptex1,SystemTrustCache members of this IPSW, in the order

@@ -36,6 +36,12 @@ DRAM_BANK0_SIZE = 0x80000000
 # Verified on the phone 2026-10-21: "arch_timer: cp15 timer running at 24.57MHz" and oscclk 24576000 Hz.
 # ArmCpu reads CNTFRQ_EL0 itself, but the kernel's mach timebase comes from this property.
 TIMEBASE_HZ = 24576000
+# /cpus/cpu0/fixed-frequency, which pexpert reads into gPEClockFrequencyInfo.fix_frequency_hz. The
+# xnu-12377 Apple UART driver computes its divisor from it, where the xnu-10063 one read 'ubrdiv'
+# from the node: at 200 MHz it picks ubr_div 107 with sample rate 16, which is exactly the 0x6b the
+# firmware leaves in the register (observed on the phone 2026-10-22). Without it the source clock
+# reads as zero and the driver cannot hit 115200 at all.
+UART_SOURCE_HZ = 200000000
 CPU_COMPATIBLE = ['arm,cortex-a520'] * 4 + ['arm,cortex-a720'] * 3 + ['arm,cortex-x4']
 
 BOARD_COMPATIBLE = ('google,komodo', 'google,zumapro')
@@ -169,13 +175,25 @@ for index, reg in enumerate(cpu_regs):
                                      ('reg', u32(reg)),
                                      ('device_type', string('cpu')),
                                      ('compatible', string(compatible)),
-                                     ('timebase-frequency', u32(TIMEBASE_HZ))]))
+                                     ('timebase-frequency', u32(TIMEBASE_HZ)),
+                                     ('fixed-frequency', u32(UART_SOURCE_HZ))]))
 
 # /arm-io: one window, children as offsets. Only the interrupt controller is described for the
 # first boots; storage, SPI and display nodes are added when their drivers exist.
+# AAPL,phandle: iBoot's trees give every node one, and xnu-12377 needs them. serial_init no longer
+# matches the console by compatible string: it reads a phandle (from /defaults/serial-device, or the
+# serial-device / serial-device-name boot argument), resolves it with SecureDTFindNodeWithPhandle,
+# which searches for "AAPL,phandle", and only then looks at that node's compatible string. With no
+# phandle anywhere, get_serial_device_phandle finds nothing, serial_init returns 0 and the kernel
+# boots mute; serial-device-name would instead panic on the missing property.
+PHANDLES = {}
+
+
 def io(name, compatible, windows, extra=()):
     reg = b''.join(u64(base - ARM_IO_BASE) + u64(size) for base, size in windows)
-    return node(name, [('compatible', string(compatible)), ('reg', reg), *extra])
+    PHANDLES[name] = len(PHANDLES) + 1
+    return node(name, [('compatible', string(compatible)), ('reg', reg),
+                       ('AAPL,phandle', u32(PHANDLES[name])), *extra])
 
 arm_io_children = [
     io('intc', 'arm,gic-v3', [(0x10400000, 0x10000), (0x10440000, 0x100000)], [('redistributor-stride', u64(0x20000))]),
@@ -226,7 +244,8 @@ tree = node('device-tree', root_properties, [
     node('chosen', chosen, [node('memory-map', memory_map), node('manifest-properties')]),
     node('cpus', children=cpus),
     *([node('psci', [('compatible', string('arm,psci-1.0')), ('method', string(args.psci_method))])] if len(cpu_regs) > 1 else []),
-    node('defaults', [] if args.sleep_enabled else [('sleep-disabled', u32(1))]),
+    node('defaults', [('serial-device', u32(PHANDLES['uart0']))]
+         + ([] if args.sleep_enabled else [('sleep-disabled', u32(1))])),
     node('options'),
     node('product', product),
     *buttons,
@@ -238,4 +257,5 @@ tree = node('device-tree', root_properties, [
 args.output.parent.mkdir(parents=True, exist_ok=True)
 args.output.write_bytes(tree)
 print(f'komodo ADT: {len(tree)} bytes, {len(cpu_regs)} cpus, {len(arm_io_children)} arm-io children, '
+      f'console uart0 phandle {PHANDLES["uart0"]}, '
       f'identity {"iPad7,1" if identity else "komodo"}{", dev-fused" if identity or args.dev_fused else ""}')
