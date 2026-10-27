@@ -10,7 +10,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'build/sheng-platform-power'
 OUT.mkdir(parents=True, exist_ok=True)
-sys.path.insert(0, str(ROOT / 'kits/XnuPrelink'))
+sys.path.insert(0, str(ROOT / 'kits/NativePrelink'))
 from native_prelink import macho, backed_offset, exports
 
 
@@ -46,7 +46,13 @@ header += '};\nstatic_assert(sizeof(ApplePMGR)==0x4b8a8,"Original provider stora
 (OUT / 'GuardedPMGRSlots.inc').write_text(guards)
 source = ROOT / 'kits/komodo/ShengPlatformPower.cpp'
 obj = OUT / 'ShengPlatformPower.o'
-record = json.loads((ROOT / 'build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/iokit/DEVELOPMENT/IOPlatformExpert.cpo.json').read_text().strip().rstrip(','))
+# UNIXNU_XNU_OBJ and UNIXNU_XNU_WORK retarget this at another kernel tree; the defaults are the
+# xnu-10063 ones. The iOS 26 build passes build/xnu-12377.121.6/ios-obj/... and its work tree.
+import os
+_OBJ = Path(os.environ.get('UNIXNU_XNU_OBJ',
+                           ROOT / 'build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837'))
+_WORK = Path(os.environ.get('UNIXNU_XNU_WORK', ROOT / '.cache/xnu-work'))
+record = json.loads((_OBJ / 'iokit/DEVELOPMENT/IOPlatformExpert.cpo.json').read_text().strip().rstrip(','))
 command, i = [], 0
 arguments = record['arguments']
 while i < len(arguments):
@@ -63,13 +69,17 @@ while i < len(arguments):
     i += 1
 command += ['-Wall', '-Wextra', '-Werror', *[a for a in arguments if a.startswith('-Wno-')], '-Wno-unknown-warning-option', '-Wno-unused-parameter', '-Wno-c99-designator',
             '-Wno-reorder-init-list', '-Wno-deprecated-enum-enum-conversion',
-            '-Wno-unnecessary-virtual-specifier', '-I', OUT, '-I', ROOT / '.cache/xnu-work/osfmk']
+            '-Wno-unnecessary-virtual-specifier', '-I', OUT, '-I', _WORK / 'osfmk']
 run(command, cwd=record['directory'])
 raw = obj.read_bytes()
 info = macho(raw)
-require(info['kind'] == 1, 'Require actual ARM64 subtype-0 Mach-O object')
+require(info['kind'] == 1, 'Require an ARM64 or ARM64E Mach-O object')
 build_version = [struct.unpack_from('<2I', raw, at + 8) for cmd, at, _ in info['commands'] if cmd == 0x32]
-require(build_version == [(2, 0x110000)], 'Require iOS17 build target')
+# LC_BUILD_VERSION platform 2 is iOS; minos is packed as major<<16 | minor<<8 | patch. 17.0 is the
+# xnu-10063 target and 26.0 the xnu-12377 one, so both are accepted while still refusing a
+# non-iOS platform.
+require(build_version in ([(2, 0x110000)], [(2, 0x1a0000)]),
+        f'Require an iOS 17 or iOS 26 build target, got {build_version}')
 sym_at = next(at for cmd, at, _ in info['commands'] if cmd == 2)
 at, count, strings, _ = struct.unpack_from('<4I', raw, sym_at + 8)
 symbols = []
@@ -88,11 +98,11 @@ for segment in info['segments']:
                     relocations[section['va'] + offset] = symbols[bits & 0xffffff][0]
 entries = [relocations.get(vtable + 16 + i * 8) for i in range(340)]
 require(all(entries) and vtable + 16 + 340 * 8 not in relocations, 'Exact 340-entry provider table')
-reference = ROOT / 'build/xnu-prelink/native-owner-ufs-rootauth3-candidate.macho'
+reference = ROOT / 'build/native-prelink/native-owner-ufs-rootauth3-candidate.macho'
 if not reference.exists():
     # Build products are pruned: a later candidate built from the same original kernelcache has the identical original
     # ApplePMGR class and inherited native IOPMGR slots; every slot/pointer check below still runs against it.
-    later = sorted((ROOT / 'build/xnu-prelink').glob('native-owner-ufs-cpu-desktop-*-candidate.macho'), key=lambda f: f.stat().st_mtime)
+    later = sorted((ROOT / 'build/native-prelink').glob('native-owner-ufs-cpu-desktop-*-candidate.macho'), key=lambda f: f.stat().st_mtime)
     require(later, 'No reference candidate available')
     reference = later[-1]
 candidate = reference.read_bytes()
@@ -124,7 +134,10 @@ bindings.update({'_sheng_original_pmgr_nub_create': 0xfffffff004a22568,
 asm = OUT / 'original-bindings.S'
 asm.write_text(''.join(f'.globl {name}\n.set {name}, {va:#x}\n' for name, va in bindings.items()))
 sdk = run(['xcrun', '--sdk', 'iphoneos', '--show-sdk-path'], text=True).strip()
-run(['xcrun', 'clang', '-target', 'arm64-apple-ios17.0', '-isysroot', sdk, '-c', asm, '-o', OUT / 'original-bindings.o'])
+# The bindings object has to match the kernel it is linked into; UNIXNU_PMGR_TARGET follows the
+# kernel architecture, since an arm64 archive is silently unusable in an arm64e link.
+_target = os.environ.get('UNIXNU_PMGR_TARGET', 'arm64-apple-ios17.0')
+run(['xcrun', 'clang', '-target', _target, '-isysroot', sdk, '-c', asm, '-o', OUT / 'original-bindings.o'])
 late = OUT / 'ShengPlatformPower.late.o'
 run(['llvm-objcopy', '--remove-section=__DATA,__mod_init_func',
      '--globalize-symbol=__GLOBAL__sub_I_ShengPlatformPower.cpp', obj, late])
