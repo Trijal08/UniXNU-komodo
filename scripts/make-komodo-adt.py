@@ -106,6 +106,8 @@ parser.add_argument('--packed-data-ramdisk', action='store_true', help='Reserve 
 parser.add_argument('--data-ramdisk', action='store_true', help='Reserve the dense RAMDisk placeholder')
 parser.add_argument('--trust-cache', action='store_true', help='Reserve the TrustCache placeholder')
 parser.add_argument('--ipad-identity', action='store_true', help='Present the iPad7,1 identity of the bring-up IPSW')
+parser.add_argument('--dev-fused', action='store_true',
+                    help='Report the dev-fused, undemoted security status in /chosen (implied by --ipad-identity)')
 parser.add_argument('--osenvironment', choices=['main', 'recoveryos', 'ramdisk'], default='main')
 parser.add_argument('--crypto-hash-method', default='sha2-384')
 parser.add_argument('--sleep-enabled', action='store_true', help='Omit /defaults/sleep-disabled; suspend is not implemented')
@@ -143,8 +145,9 @@ if args.chip_id is not None:
     chosen.append(('chip-id', u32(args.chip_id)))
 if args.unique_chip_id is not None:
     chosen.append(('unique-chip-id', u64(args.unique_chip_id)))
-if identity:
+if identity or args.dev_fused:
     # Dev-fused, undemoted security status (0,0,1,1) as read by MobileGestalt; established on hardware by ios-sweet and sheng.
+    # It says nothing about which device this is, so it is also what a tree without an identity block reports.
     chosen += [('certificate-production-status', u32(0)), ('effective-production-status-ap', u32(0)),
                ('certificate-security-mode', u32(1)), ('effective-security-mode-sep', u32(1))]
 chosen += empty_nvram_proxy()
@@ -234,4 +237,5 @@ tree = node('device-tree', root_properties, [
 
 args.output.parent.mkdir(parents=True, exist_ok=True)
 args.output.write_bytes(tree)
-print(f'komodo ADT: {len(tree)} bytes, {len(cpu_regs)} cpus, {len(arm_io_children)} arm-io children, identity {"iPad7,1" if identity else "komodo"}')
+print(f'komodo ADT: {len(tree)} bytes, {len(cpu_regs)} cpus, {len(arm_io_children)} arm-io children, '
+      f'identity {"iPad7,1" if identity else "komodo"}{", dev-fused" if identity or args.dev_fused else ""}')

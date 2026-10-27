@@ -10,19 +10,22 @@ kit = "komodo"
 
 # Bring-up target. iPad7,1 iPadOS 17.7.11 is the newest arm64 (non-PAC) image the base stack is
 # qualified against; it is used to prove the hardware before switching to an iPhone target.
+# Bring-up target for the iOS 26 line. iPhone18,2 (iPhone 17 Pro Max, V54) 26.5.2 is the newest
+# published release whose kernel source Apple has shipped (xnu-12377.121.6), and it is arm64e, which
+# komodo's Cortex-X4 can run natively. The zeta port uses the same image, so its recorded device
+# class and board id are reused rather than guessed.
 [ipsw]
-url = "https://updates.cdn-apple.com/2025SpringFCS/fullrestores/122-77166/DCA6CFE8-90E9-4B92-880D-3DE171798E40/iPad_Pro_HFR_17.7.11_21H461_Restore.ipsw"
-product = "iPad7,1"
-version = "17.7.11"
-build = "21H461"
-device_class = "j120ap"
-chip_id = 0x8011
-board_id = 12
+url = "https://updates.cdn-apple.com/2026SpringFCS/fullrestores/140-26432/CF51E589-7C43-4B55-B909-CF585DAD0570/iPhone18,2_26.5.2_23F84_Restore.ipsw"
+product = "iPhone18,2"
+version = "26.5.2"
+build = "23F84"
+device_class = "v54ap"
+chip_id = 0x8150
+board_id = 14
 fetch = ["KernelCache", "DeviceTree", "StaticTrustCache", "Cryptex1,SystemTrustCache"]
 
-[ipsw.sha256]
-"044-76040-038.dmg" = "3f99b859c9728379110b66657c7b15285bcb1925ad8b5726542e2cdcf8b1028d"
-"044-76034-038.dmg" = "b4908cde41d23e6bc05e6af51a2c9eeb00cf0f863a6a18b1600c96a3fd70414f"
+# No [ipsw.sha256] pins yet: the member digests of this image have not been recorded here. The
+# userdata step prints the digest of every image it expands, so they are filled in from a first run.
 
 # The Darwin root goes into the GPT partition named "darwin" (sda37), carved out of the end of the
 # "linux" partition on 2026-10-21: exactly 64 GiB, 1 MiB aligned, UFS LUN 0, 4096-byte sectors,
@@ -75,12 +78,17 @@ archives = [
   "build-komodo-linkstubs.py",
 ]
 
+# The prelink step does not run against this IPSW. iPhone18,2 23F84 ships an SPTM kernelcache
+# (MH_FILESET, __DATA_SPTM, libsptm_init), so its kexts are built against a monitor ABI that a
+# NO_MONITOR BCM2837 kernel cannot present; reaching iOS 26 userland needs a non-monitor target.
+# kernelcache_sha256 is the digest of the decompressed arm64e slice, measured 2026-10-26.
+# early_security_init is an address inside the original kernelcache and has to be re-measured for
+# whichever cache is adopted; the 17.7.11 value it used to hold is gone rather than silently wrong.
 [kernel.prelink]
 tool = "kits/XnuPrelink/emit_prelink.py"
-kernel = "build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/mach.development.bcm2837.unstripped.noctf"
-kernelcache_sha256 = "f18b4df865405f2a287b84977d7aca745e056d656d9fc9df1662970ce2969de7"
+kernel = "build/xnu-12377.121.6/ios-obj/DEVELOPMENT_ARM64_BCM2837/mach.development.bcm2837.unstripped.noctf"
+kernelcache_sha256 = "b864d456e3d74b2f83fea07645893a26f56203938e611541e39a84bbdc4f2b22"
 slide = "-0x1000000"
-early_security_init = "com.apple.driver.AppleMobileFileIntegrity=0xfffffff005ab4ae0"
 roots = [
   "com.apple.AppleFSCompression.AppleFSCompressionTypeZlib",
   "com.apple.driver.AppleARMPlatform",
@@ -119,121 +127,35 @@ roots = [
 # carries UFS, PartitionDxe, Fat, SimpleFb (1344x2992), Keypad, serial console and BdsDxe. UniXNU
 # and DarwinBoot are not embedded: the firmware volume is pinned at 0x201000 bytes with the UEFI
 # stack right behind it, so UniXNU runs from the ESP as EFI/BOOT/BOOTAA64.EFI (BdsDxe default) and
-# DarwinBoot.efi ships in the payload (see [payload] loader). The package list mirrors
-# Platforms/Google/caimitoPkg/DeviceBuild.py. Build with --edk2 pointing at the Mu-Silicium
-# Mu_Basecore submodule so the firmware is linked against the same base it runs on today.
-[firmware]
-config = "caimito"
-dsc = "Platforms/Google/caimitoPkg/caimito.dsc"
-fd = "Build/caimitoPkg/{target}_CLANGPDB/FV/SILICIUM_UEFI.fd"
-submodules = [
-  "Binaries",
-  "Common/Mu",
-  "Common/Mu_OEM_Sample",
-  "Silicium-ACPI",
-  "Silicon/Silicium/OpensslPkg/Library/OpensslLib/openssl",
-]
-patches = []
-packages = [
-  "{uefi}",
-  "{tree}/package",
-  "{tree}/drivers/DarwinBoot",
-  "{edk2}",
-  "{uefi}/Platforms/Google",
-  "{uefi}/Common/Mu",
-  "{uefi}/Common/Mu_OEM_Sample",
-  "{uefi}/Silicon/Samsung",
-  "{uefi}/Silicon/Silicium",
-  "{uefi}/Silicium-ACPI",
-  "{uefi}/Silicium-ACPI/Platforms/Samsung",
-  "{uefi}/Silicium-ACPI/Silicon/Samsung",
-]
-
-[firmware.defines]
-DEVICE_MODEL = "0"
-MEMORY_PROTECTION = "TRUE"
-SHIP_MODE = "FALSE"
-BUILDID_STRING = "komodo-research"
-
-# caimito.toml: lz4 legacy-frame firmware volume, no appended DTB, Android boot header v4.
-# `unixnu bootimg` gzips and appends a DTB and verifies v0..v2 header fields, so the boot image is
-# built with the Mu-Silicium script (build_uefi.py -d caimito, model 0) and carries no payload
-# ramdisk. The payload is flashed to the "esp" partition instead (scripts/komodo-esp.py).
-
+# DarwinBoot.efi ships in the payload (see # First boot on the iOS 26 line, modelled on the zeta port's bring-up payload: the smallest argument
+# set that still gives a serial log. Deliberately omitted for now:
+#   native-ufs-root / sheng-pmgr   the payload step requires the kernel to export _sheng_pmgr_run
+#                                  when a native UFS root is asked for, and the PMGR shim is not
+#                                  ported to xnu-12377 yet. Without the argument the gate does not
+#                                  apply and the kernel still publishes the UFS media.
+#   the offline-* shim set         those were qualified against the 17.7.11 userland.
+#   root_match_volume_uuid         set once the OS volume UUID of the iOS 26 root image is read.
 [payload]
 volume = "KOMODOESP"
 size_mib = 192
-loader = "payload"
-title = "komodo: source 4K XNU"
+loader = "payload"                  # DarwinBoot.efi ships in the payload, not the firmware volume
+title = "komodo iOS 26 first boot: iPhone18,2 23F84"
 dram_size = "0x80000000"
 panic_screen = true
-skip_setup_tool = "scripts/seed-data-skip-setup.py"
-trust_cache_sha256 = [
-  "7416ca4f8377146626bb284e2133c76bee6cb4e3ee0af5d648b186235a7323a7",
-  "8900d6a93d7a59ce1a872a5c081e559f4240a218f97e12d44d22dda46644d68f",
-]
-timeout = 3
-
-# The sheng argument set minus its GPU, touch and cpufreq switches. "native-ufs-root=1" publishes the
-# darwin partition through the owner-verified NativeUfs, "sheng-data-persist=2" writes the Data volume
-# through to the store at the end of that partition (below the 1024 MiB log reserve), and "sheng-pmgr=2"
-# publishes the original PMGR nub the target AMFI needs. The text-fixup is for the shared IPSW's dyld cache.
-kernel_args = [
-  "-v",
-  "serial=3",
-  "debug=0x14e",
-  "native-ufs-root=1",
-  "sheng-data-persist=2",
-  # -enable_kprintf_spam (pass it with --kernel-arg when tracing): a DEVELOPMENT kernel drops every kprintf without it,
-  # and with it every kprintf in the kernel goes out over the polled UART, which slows the whole boot several-fold.
-  "kt_fixed_zones=120",
-  "offline-legacy-register=1",
-  "offline-legacy-gop=1",
-  "offline-legacy-unit-scale=2",
-  "offline-legacy-pm=1",
-  "offline-legacy-validate=1",
-  "offline-legacy-transfer=1",
-  "offline-legacy-cpu-present=1",
-  "offline-hid-home=1",
-  "offline-hid-input=1",
-  "offline-legacy-phase=4",
-  "offline-mobile-graphics-client=1",
-  "offline-mobile-graphics-load=1",
-  "offline-apfs-load=1",
-  # boot-progress=2: kernel console and stage names on the panel; the UniXNU hooks mirror them, the UART keeps every byte.
-  "boot-progress=2",
-  "-apfs_shared_datavolume",
-  "offline-key-events=1",
-  "sheng-pmgr=2",
-  "armcpu-diagnostics=1",
-  "sheng-disable-watchdogd=1",
-  "sheng-disable-jobs=com.apple.identityservicesd,com.apple.locationd,com.apple.CommCenter,com.apple.bluetoothd",
-  "boot-ui-focus3=Preferences",
-  "boot-ui-focus4=SpringBoard",
-  # Secondary cores: ArmCpu starts them with PSCI CPU_ON through its EL2 trampoline (the firmware starts them at
-  # EL2). IPIs are plain SGIs here (no hypervisor traps them, unlike sheng's armcpu-spi-ipi=1); the self-IPI lets
-  # XNU clear SIGPdisabled on each new core.
-  "sheng-smp=1",
-  "armcpu-self-ipi=1",
-  "sheng-aks=1",
-  "sheng-banner=0",
-  "-no_slto_panic",
-  "ml-timeout-lock-panic-scale=40",
-  "sheng-vsync=120",
-  "text-fixup0=dyld_shared_cache_arm64.15,421e8bc,28ad1bb0008544f9,c0035fd6008544f9",
-]
+kernel_args = ["-v", "serial=3", "debug=0x14e", "native-ufs-probe=16"]
+# The bundle of the StaticTrustCache and Cryptex1,SystemTrustCache members of this IPSW, in the order
+# the [userdata] windows carry them (scripts/build-trust-bundle.py): 3576 + 116 entries. Pinning the
+# digest is what proves the modules reached the payload unchanged.
+trust_cache_sha256 = ["a55251b2216960e6d307782fd98d2415f59cafa1ccde31bab6110ad8c87aef4e"]
 
 [payload.adt]
 tool = "scripts/make-komodo-adt.py"
 chip_id = "207"
-# XNU takes one physical range. Bank 0 is 2 GiB at 0x80000000 with no-map holes (GSA at
-# 0x90200000, more at 0x92e00000 and 0x94000000); the upper banks run from 0x880000000 for
-# about 13.5 GiB. Start with 4 GiB owned and let DarwinBoot place it; raise it once the window
-# is known to land in the upper bank.
-owned_memory_size = "0x100000000"
-root_match_volume_uuid = "04769D26-2CA0-4825-B443-E2E5F88300F2"
 cpu_regs = "0,0x100,0x200,0x300,0x400,0x500,0x600,0x700"
 psci_method = "smc"
-packed_data_ramdisk = true
-ipad_identity = true
 unique_chip_id = "required"
+# No identity block: the iPad7,1 one belongs to the 17.7.11 userland and would misdescribe this root
+# image. The security tuple it used to carry is not part of an identity, and iOS 26 still has to read
+# the AP as dev-fused and undemoted, so it is asked for on its own.
+dev_fused = true
+
